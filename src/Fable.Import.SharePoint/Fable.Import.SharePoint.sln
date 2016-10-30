@@ -5,6 +5,11 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fable.Import.SharePoint", "Fable.Import.SharePoint.fsproj", "{BF459A54-FEAE-405A-8006-79DB7DBD00C2}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{6452BC7E-546A-4C88-9717-256F89E5C508}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\build.fsx = ..\..\build.fsx
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
