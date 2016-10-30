@@ -1,0 +1,6 @@
+language: csharp
+
+before_script:
+- npm install -g npm@'>=3'
+
+script: ./build.sh
