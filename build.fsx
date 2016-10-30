@@ -49,13 +49,28 @@ let private npmFileName =
     match isWindows with
     | true ->  
         let path = System.Environment.GetEnvironmentVariable("PATH")
+        //printfn "PATH: %s" path
         path
         |> fun path -> path.Split ';'
         |> Seq.tryFind (fun p -> p.Contains "nodejs")
         |> fun res ->
             match res with
             | Some npm when File.Exists (sprintf @"%s\npm.cmd" npm) -> (sprintf @"%s\npm.cmd" npm)
-            | _ -> "./packages/Npm.js/tools/npm.cmd"
+            | _ -> 
+                    let npmInPackages = "./packages/Npm.js/tools/npm.cmd"
+                    if File.Exists npmInPackages then npmInPackages 
+                    else 
+                        let info = new ProcessStartInfo("where","npm.cmd")
+                        info.StandardOutputEncoding <- System.Text.Encoding.UTF8
+                        info.RedirectStandardOutput <- true
+                        info.UseShellExecute        <- false
+                        info.CreateNoWindow         <- true
+                        use proc = Process.Start info
+                        proc.WaitForExit()
+                        match proc.ExitCode with
+                            | 0 when not proc.StandardOutput.EndOfStream ->
+                              proc.StandardOutput.ReadLine()
+                            | _ -> """C:\Program Files\nodejs\npm.cmd"""
     | _ -> 
         let info = new ProcessStartInfo("which","npm")
         info.StandardOutputEncoding <- System.Text.Encoding.UTF8
@@ -76,11 +91,19 @@ Target "Clean" (fun _ ->
 
 Target "Npm" (fun _ ->
     Npm (fun p ->
-            { p with
-                NpmFilePath = npmFileName
-                Command = Install Standard
-                WorkingDirectory = "./src/Fable.Import.SharePoint/"
-            })
+            printfn "node.js found on %A" npmFileName
+            if npmFileName = "" then
+                { p with
+                    Command = Install Standard
+                    WorkingDirectory = "./src/Fable.Import.SharePoint/"
+                }
+            else
+                { p with
+                    NpmFilePath = npmFileName
+                    Command = Install Standard
+                    WorkingDirectory = "./src/Fable.Import.SharePoint/"
+                }
+        )
 )
 
 Target "Build" (fun _ ->
