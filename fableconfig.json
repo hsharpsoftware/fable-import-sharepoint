@@ -1,0 +1,9 @@
+{
+    "module": "umd",
+    "sourceMaps": true,
+    "projFile": "src/Fable.Import.SharePoint/Fable.Import.SharePoint.fsproj",
+    "outDir": "js",
+    "scripts": {
+        "prebuild": "npm install"
+    }
+}
