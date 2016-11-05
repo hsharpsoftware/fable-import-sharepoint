@@ -12,3 +12,5 @@ if errorlevel 1 (
 )
 
 packages\FAKE\tools\FAKE.exe build.fsx %*
+
+src\Fable.Import.SharePoint\node_modules\.bin\fable.cmd
