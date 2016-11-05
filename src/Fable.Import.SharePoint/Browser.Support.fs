@@ -14,15 +14,38 @@ let onDocumentReady (callback:unit->unit) : unit =
             callback ()
         null
 
+let windowParentLocation =
+    try 
+        Some(window.parent.location.href)
+    with
+    | _ -> None
+
+let getIndexOfUrlPart (part : string) : int =
+    window.location.href.IndexOf(part)
+
+let locationHasPart (part : string) =
+    getIndexOfUrlPart part > -1
+
+let getCurrentUrl () =
+    window.location.href
+
+let parentHasPart (part : string) =
+    let parent = windowParentLocation
+    match parent with
+    | Some(loc) -> loc.IndexOf(part) > -1
+    | _ -> false
+
 [<Emit("alert($0)")>]
 let alert (x: string) : unit = jsNative
 
 [<Emit("console.log($0)")>]
 let log (message:string) : unit = jsNative
 
+[<Emit("console.log($0)")>]
+let logO (value:obj) : unit = jsNative
+
 [<Emit("jQuery($0)")>]
 let el (cssSelector:string) = jsNative
-
 
 let elH (elementId:string) = el("#"+elementId)
 

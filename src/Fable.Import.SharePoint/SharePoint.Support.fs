@@ -1,6 +1,7 @@
 ﻿module SharePoint.Support
 open Fable.Import.SharePoint.SP
 open Fable.Core
+open Fable.Core.JsInterop
 open Fable.Import.Browser
 
 open Browser.Support
@@ -108,34 +109,37 @@ type ListDefinition = {
     Fields : FieldDefinition array
 }
 
-let executeQuery continue1 (clientContext : ClientContext)  =    
-    clientContext.executeQueryAsync(
-        System.Func<_,_,_>(fun _ _ -> continue1(clientContext) ),
-        System.Func<_,_,_>(onQueryFailed)
-    )
-
-let createCustomList title url continue1 (clientContext : ClientContext) =
-    let web = clientContext.get_web()
-    let listCollection = web.get_lists()
-    clientContext.load(listCollection)
-    let list1 = listCollection.getByTitle(title)
-    clientContext.load(list1)
-    clientContext.executeQueryAsync(
-        System.Func<_,_,_>(fun _ _ -> continue1(clientContext) ),
-        System.Func<_,_,_>(fun _ _ -> 
-                let listCreationInfo = ListCreationInformation()
-                listCreationInfo.set_title(title)
-                listCreationInfo.set_url("Lists/"+url)
-                listCreationInfo.set_templateType(100.0)
-                let list1 = web.get_lists().add(listCreationInfo)
-
-                clientContext.load(list1);
-                clientContext.executeQueryAsync(
-                    System.Func<_,_,_>(fun _ _ -> continue1(clientContext) ),
-                    System.Func<_,_,_>(onQueryFailed)
-                )        
+let executeQueryAsyncWithFallback (clientContext:ClientContext) (fallback) =
+    Async.FromContinuations( fun( cont, econt, ccont ) ->
+        clientContext.executeQueryAsync(
+            System.Func<_,_,_>(fun _ _ -> cont() ),
+            System.Func<_,_,_>(fallback)
         )        
     )
+
+let executeQueryAsync (clientContext:ClientContext) =
+    executeQueryAsyncWithFallback clientContext onQueryFailed
+
+let createCustomList title url (clientContext : ClientContext) =
+    async {
+        let web = clientContext.get_web()
+        let listCollection = web.get_lists()
+        clientContext.load(listCollection)
+        let list1 = listCollection.getByTitle(title)
+        clientContext.load(list1)
+        let doCreateList () = 
+                async {
+                    let listCreationInfo = ListCreationInformation()
+                    listCreationInfo.set_title(title)
+                    listCreationInfo.set_url("Lists/"+url)
+                    listCreationInfo.set_templateType(100.0)
+                    let list1 = web.get_lists().add(listCreationInfo)
+
+                    clientContext.load(list1);
+                    do! executeQueryAsync clientContext
+                } |> Async.StartImmediate
+        do! executeQueryAsyncWithFallback clientContext  (  fun _ _ -> doCreateList () )                
+    } |> Async.StartImmediate
 
 let private createCustomListInt title url (createContentType:bool) continue1 (listCollection:ListCollection) (web:Web) (clientContext : ClientContext) =
     let list1 = listCollection.getByTitle(title)
@@ -176,16 +180,15 @@ let private createCustomListInt title url (createContentType:bool) continue1 (li
         )        
     )
 
-let createListColumn (list : List) (contentType:ContentType option) id name displayName (fieldTypeName:string) required (lookupListId:Guid option) (lookupFieldName:string option) continue1 (clientContext : ClientContext) =
-    let fields = list.get_fields()
-    clientContext.load(fields) 
-    clientContext.executeQueryAsync(
-        System.Func<_,_,_>(fun _ _ -> 
-            let field = fields.getByTitle(displayName)
-            clientContext.load(field) 
-            clientContext.executeQueryAsync(
-                System.Func<_,_,_>(fun _ _ -> clientContext |> executeQuery continue1),
-                System.Func<_,_,_>(fun _ _ -> 
+let createListColumn (list : List) (contentType:ContentType option) id name displayName (fieldTypeName:string) required (lookupListId:Guid option) (lookupFieldName:string option) (clientContext : ClientContext) =
+    async {
+        let fields = list.get_fields()
+        clientContext.load(fields) 
+        do! executeQueryAsync clientContext
+        let field = fields.getByTitle(displayName)
+        clientContext.load(field) 
+        do! executeQueryAsyncWithFallback clientContext (fun _ _ -> 
+            async {
                     let field = 
                         match lookupListId, lookupFieldName with
                         | None, None ->
@@ -201,31 +204,27 @@ let createListColumn (list : List) (contentType:ContentType option) id name disp
                                 AddFieldOptions.addToAllContentTypes
                             )
                     clientContext.load(field) 
-                    clientContext |> executeQuery ( fun clientContext ->
-                        match contentType with
-                        | Some(c) -> 
-                            let fieldLinkCreatingInformation = FieldLinkCreationInformation()
-                            fieldLinkCreatingInformation.set_field( field )
-                            c.get_fieldLinks().add(fieldLinkCreatingInformation) |> ignore
-                            c.update(true)
-                            clientContext.executeQueryAsync(
-                                System.Func<_,_,_>(fun _ _ -> clientContext |> executeQuery continue1),
-                                System.Func<_,_,_>(onQueryFailed)
-                            )
-                        | _ -> clientContext |> executeQuery continue1
-                    )
-                )
-            )
-        ),
-        System.Func<_,_,_>(onQueryFailed)
-    )
+                    do! executeQueryAsync clientContext
+                    match contentType with
+                    | Some(c) -> 
+                        let fieldLinkCreatingInformation = FieldLinkCreationInformation()
+                        fieldLinkCreatingInformation.set_field( field )
+                        c.get_fieldLinks().add(fieldLinkCreatingInformation) |> ignore
+                        c.update(true)
+                        do! executeQueryAsync clientContext
+                    | _ -> ()
+                } |> Async.StartImmediate
+           )
+    } |> Async.StartImmediate
+    
 
-let getListId title continue1 (listCollection:ListCollection) (clientContext : ClientContext) = 
-    let list1 = listCollection.getByTitle(title)
-    clientContext.load(list1, "Id")
-    let continue0 clientContext = 
-        continue1 (list1.get_id()) clientContext
-    clientContext |> executeQuery continue0
+let getListId title (listCollection:ListCollection) (clientContext : ClientContext) = 
+    async {
+        let list1 = listCollection.getByTitle(title)
+        clientContext.load(list1, "Id")
+        do! executeQueryAsync clientContext
+        return list1
+    } |> Async.RunSynchronously
 
 let createCustomLists (listDefinitions:ListDefinition array) continue1 (clientContext : ClientContext) =
     let web = clientContext.get_web()
@@ -243,12 +242,13 @@ let createCustomLists (listDefinitions:ListDefinition array) continue1 (clientCo
                     let fieldDefinition = listDefinitions.[index].Fields.[fieldsIndex]
                     match fieldDefinition with
                     | StandardFieldDefinition(fieldDefinition) ->
-                        createListColumn list contentType (fixColumnId(fieldDefinition.ID)) fieldDefinition.Name fieldDefinition.DisplayName fieldDefinition.FieldType.toString fieldDefinition.Required None None (continue0 index (fieldsIndex+1) list contentType ) clientContext
+                        createListColumn list contentType (fixColumnId(fieldDefinition.ID)) fieldDefinition.Name fieldDefinition.DisplayName fieldDefinition.FieldType.toString fieldDefinition.Required None None clientContext
+                        (continue0 index (fieldsIndex+1) list contentType ) clientContext
                     | LookupFieldDefinition(fieldDefinition) ->
                         let fix (name:string) = name.Replace(" ", "_x0020_")
-                        let continue2 listId clientContext = 
-                            createListColumn list contentType (fixColumnId(fieldDefinition.ID)) fieldDefinition.Name fieldDefinition.DisplayName "Lookup" fieldDefinition.Required (Some(listId)) (Some(fix(fieldDefinition.LookupFieldDisplayName))) (continue0 index (fieldsIndex+1) list contentType ) clientContext
-                        getListId fieldDefinition.LookupListName continue2 listCollection clientContext                        
+                        let list = getListId fieldDefinition.LookupListName listCollection clientContext                        
+                        createListColumn list contentType (fixColumnId(fieldDefinition.ID)) fieldDefinition.Name fieldDefinition.DisplayName "Lookup" fieldDefinition.Required (Some(list.get_id())) (Some(fix(fieldDefinition.LookupFieldDisplayName))) clientContext
+                        (continue0 index (fieldsIndex+1) list contentType ) clientContext                     
                 else
                     continue0 (index+1) -1 null None clientContext 
             else
@@ -265,3 +265,13 @@ type SPCascadeDropDownSetup = {
     childColumn : string
     debug : bool
  }
+
+let uploadMasterPage (content) (clientContext:ClientContext) =
+    let web = clientContext.get_web()
+    let folder = web.getFolderByServerRelativeUrl("")
+    let files = folder.get_files()
+    let file : FileCreationInformation = FileCreationInformation()
+    file.set_content(content)
+    let file = files.add(file)
+    file.checkOut()
+    
