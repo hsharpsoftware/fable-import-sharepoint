@@ -16,7 +16,8 @@
 		"sharepoint"
     ],
     "devDependencies": {
-        "fable-core": "^0.6.3"
+        "fable-core": "^0.6.3",
+        "fable-compiler": "^0.6.15"
     },
     "homepage": "https://hsharpsoftware.github.io/fable-import-sharepoint/"
 }
