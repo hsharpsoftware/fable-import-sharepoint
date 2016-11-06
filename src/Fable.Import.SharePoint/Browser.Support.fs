@@ -49,8 +49,11 @@ let el (cssSelector:string) = jsNative
 
 let elH (elementId:string) = el("#"+elementId)
 
-let setElementValue (elementId:string) (text:string) =
+let setElementHValue (elementId:string) (text:string) =
     (elH (elementId))?``val``( text ) |> ignore
+
+let setElementValue (elementId:string) (text:string) =
+    (el (elementId))?``val``( text ) |> ignore
 
 let checkRadio (elementId:string) =
     (elH (elementId))?prop("checked",true) |> ignore

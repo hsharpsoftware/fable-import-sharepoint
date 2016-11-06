@@ -226,6 +226,8 @@ let getListId title (listCollection:ListCollection) (clientContext : ClientConte
         return list1
     } |> Async.RunSynchronously
 
+let fixColumnName (name:string) = name.Replace(" ", "_x0020_")
+
 let createCustomLists (listDefinitions:ListDefinition array) continue1 (clientContext : ClientContext) =
     let web = clientContext.get_web()
     let listCollection = web.get_lists()
@@ -245,9 +247,8 @@ let createCustomLists (listDefinitions:ListDefinition array) continue1 (clientCo
                         createListColumn list contentType (fixColumnId(fieldDefinition.ID)) fieldDefinition.Name fieldDefinition.DisplayName fieldDefinition.FieldType.toString fieldDefinition.Required None None clientContext
                         (continue0 index (fieldsIndex+1) list contentType ) clientContext
                     | LookupFieldDefinition(fieldDefinition) ->
-                        let fix (name:string) = name.Replace(" ", "_x0020_")
                         let list = getListId fieldDefinition.LookupListName listCollection clientContext                        
-                        createListColumn list contentType (fixColumnId(fieldDefinition.ID)) fieldDefinition.Name fieldDefinition.DisplayName "Lookup" fieldDefinition.Required (Some(list.get_id())) (Some(fix(fieldDefinition.LookupFieldDisplayName))) clientContext
+                        createListColumn list contentType (fixColumnId(fieldDefinition.ID)) fieldDefinition.Name fieldDefinition.DisplayName "Lookup" fieldDefinition.Required (Some(list.get_id())) (Some(fixColumnName(fieldDefinition.LookupFieldDisplayName))) clientContext
                         (continue0 index (fieldsIndex+1) list contentType ) clientContext                     
                 else
                     continue0 (index+1) -1 null None clientContext 
@@ -275,3 +276,9 @@ let uploadMasterPage (content) (clientContext:ClientContext) =
     let file = files.add(file)
     file.checkOut()
     
+let convert<'T> (source:Fable.Import.SharePoint.IEnumerable<'T>) : array<'T> =
+    let enumerator = source.getEnumerator()
+    seq {
+        while enumerator.moveNext() do
+            yield enumerator.get_current()
+    } |> Seq.toArray
