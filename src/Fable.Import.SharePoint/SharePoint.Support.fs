@@ -317,3 +317,16 @@ let startWorkFlow (context:ClientContext) (web:Web) (itemId) (subscriptionId) =
     }
     |> Async.StartImmediate
 
+[<Emit("SPDragDropManager")>]
+let SPDragDropManager() = jsNative
+
+[<Emit("DragDropMode")>]
+let DragDropMode() = jsNative
+
+let disableDragAndDrop () =
+    window?g_uploadType <- DragDropMode()?NOTSUPPORTED
+    SPDragDropManager()?DragDropMode <- DragDropMode()?NOTSUPPORTED
+
+[<Emit("ExecuteOrDelayUntilScriptLoaded($0,$1)")>]
+let ExecuteOrDelayUntilScriptLoaded (callback:unit->unit) (script:string) = jsNative
+
