@@ -330,3 +330,8 @@ let disableDragAndDrop () =
 [<Emit("ExecuteOrDelayUntilScriptLoaded($0,$1)")>]
 let ExecuteOrDelayUntilScriptLoaded (callback:unit->unit) (script:string) = jsNative
 
+let nearestFormRowParent el = 
+    el?parents("td .ms-formbody")?parent()
+
+[<Literal>]
+let idAttachmentsRow = "idAttachmentsRow"

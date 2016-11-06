@@ -52,8 +52,8 @@ let elH (elementId:string) = el("#"+elementId)
 let setElementHValue (elementId:string) (text:string) =
     (elH (elementId))?``val``( text ) |> ignore
 
-let setElementValue (elementId:string) (text:string) =
-    (el (elementId))?``val``( text ) |> ignore
+let setElementValue (selector:string) (text:string) =
+    (el (selector))?``val``( text ) |> ignore
 
 let checkRadio (elementId:string) =
     (elH (elementId))?prop("checked",true) |> ignore
@@ -89,4 +89,11 @@ let postJSON url data callback =
             success = callback
         }
     )
- 
+
+let showAll el = 
+    el?find("*")?show() |> ignore
+    el?show() |> ignore
+
+let hide el = el?hide()
+let show el = el?show()
+
