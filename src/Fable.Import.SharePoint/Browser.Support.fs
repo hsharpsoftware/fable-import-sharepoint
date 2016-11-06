@@ -61,3 +61,32 @@ let checkRadio (elementId:string) =
 [<Emit("jQuery()")>]
 let jQ () = jsNative
 
+type ajaxParameters = {
+    beforeSend : obj -> unit
+    ``type`` : string
+    url : string
+    data : string
+    dataType : string
+    success : string -> unit
+}
+
+[<Emit("jQuery.ajax($0)")>]
+let ajax (parameter:ajaxParameters) = jsNative
+
+
+let postJSON url data callback =
+    ajax(
+        let beforeSend (xhrObj) =
+            xhrObj?setRequestHeader("Content-Type","application/json") |> ignore
+            xhrObj?setRequestHeader("Accept","application/json")  |> ignore
+    
+        {
+            beforeSend = beforeSend
+            ``type`` = "POST"
+            url = url     
+            data = data
+            dataType = "json"
+            success = callback
+        }
+    )
+ 

@@ -282,3 +282,38 @@ let convert<'T> (source:Fable.Import.SharePoint.IEnumerable<'T>) : array<'T> =
         while enumerator.moveNext() do
             yield enumerator.get_current()
     } |> Seq.toArray
+
+[<Emit("new SP.WorkflowServices.WorkflowServicesManager($0, $1)")>]
+let WorkflowServicesManager (context:ClientContext, web:Web) = jsNative
+
+let getSubscriptionsByList (context:ClientContext) (web:Web) (listId) =   
+    async { 
+        let sMgr = WorkflowServicesManager (context, web)
+        let sservice = sMgr?getWorkflowSubscriptionService()
+        let ssubs = sservice?enumerateSubscriptionsByList(listId) :?> ClientObject
+        context.load(ssubs)
+        do! executeQueryAsync context
+        let e = ssubs?getEnumerator()
+        while (e?moveNext() :?> bool) do
+           let c =  e?get_current()
+           log("Name :" + c?get_name().ToString() + " sID: " + c?get_id().ToString())
+    } |> Async.StartImmediate
+
+[<Emit("SP.WorkflowServices")>]
+let WorkflowServices () = jsNative
+
+let startWorkFlow (context:ClientContext) (web:Web) (itemId) (subscriptionId) =
+    async {
+        let wfServiceManager = WorkflowServices()?WorkflowServicesManager?newObject(context, web)
+        let subscription = wfServiceManager?getWorkflowSubscriptionService()?getSubscription(subscriptionId) :?> ClientObject
+        log "Loading subscription"
+        context.load(subscription)
+        do! executeQueryAsync context
+        let inputParameters = new System.Collections.Generic.Dictionary<string, obj>()
+        log "Successfully starting workflow."
+        wfServiceManager?getWorkflowInstanceService()?startWorkflowOnListItem(subscription, itemId, inputParameters) |> ignore
+        do! executeQueryAsync context
+        log "workflow started successfully"
+    }
+    |> Async.StartImmediate
+
