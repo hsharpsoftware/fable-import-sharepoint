@@ -97,3 +97,5 @@ let showAll el =
 let hide el = el?hide()
 let show el = el?show()
 
+[<Emit("setTimeout($0,$1)")>]
+let setTimeout (callback:unit->unit) (miliseconds) = jsNative

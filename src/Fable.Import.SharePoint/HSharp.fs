@@ -16,6 +16,7 @@ type IApplication =
     abstract member getSiteFromUrl: string -> ISite option
     abstract member getEndPointFromUrl: string -> IEndPoint option
     abstract member render: (ISite option) -> (IEndPoint option) -> unit
+    abstract member scheduled: (ISite option) -> unit
 
 let logD isDebug message =
     if isDebug then log message
@@ -37,4 +38,15 @@ let startApplication (application:IApplication) =
     let endpoint = application.getEndPointFromUrl currentUrl
     logDF "@ EndPoint %A" endpoint
     application.render site endpoint
-    logD "Rendered, start done"
+    logD "Rendered"
+
+    let rec scheduler () = 
+        //logD "Running scheduled task..."
+        application.scheduled(site)
+        //logD "... done"
+        setTimeout scheduler 1000
+
+    logD "Scheduling the task for the very first time"
+    setTimeout scheduler 1000
+
+    logD "start done"
