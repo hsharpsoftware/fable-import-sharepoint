@@ -94,8 +94,16 @@ let showAll el =
     el?find("*")?show() |> ignore
     el?show() |> ignore
 
+let change el func = el?change(func)
+let submit el func = el?submit(func)
+let attr el value:string = el?attr(value).ToString()
 let hide el = el?hide()
 let show el = el?show()
-
+let append el (value: obj) = el?append(value)
+let parent el = el?parent()
+let remove el = el?remove()
 [<Emit("setTimeout($0,$1)")>]
 let setTimeout (callback:unit->unit) (miliseconds) = jsNative
+let prop el (value : string*'A) = 
+                  let name, v = value
+                  el?prop(name,v)              
