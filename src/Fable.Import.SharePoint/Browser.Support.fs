@@ -29,6 +29,9 @@ let locationHasPart (part : string) =
 let getCurrentUrl () =
     window.location.href
 
+let setCurrentUrl (url:string) =
+    window.location.href <- url
+
 let parentHasPart (part : string) =
     let parent = windowParentLocation
     match parent with
@@ -107,3 +110,8 @@ let setTimeout (callback:unit->unit) (miliseconds) = jsNative
 let prop (value : string*'A) el = 
                   let name, v = value
                   el?prop(name,v)              
+
+let readonlyAll el = 
+    el?find("*")?prop("contentEditable", false) |> ignore
+    el?find("*")?prop("disabled", true) |> ignore
+    

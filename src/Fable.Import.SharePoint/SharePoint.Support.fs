@@ -12,6 +12,10 @@ let onQueryFailed sender (args:ClientRequestFailedEventArgs) =
     let message = sprintf "Request failed. %s \n%s " (args.get_message()) (args.get_stackTrace())
     failwith message
 
+let nothingOnQueryFailed sender (args:ClientRequestFailedEventArgs) =
+    ()
+
+
 type FieldType = 
     | AllDayEvent
     | Attachments 
@@ -119,6 +123,10 @@ let executeQueryAsyncWithFallback (clientContext:ClientContext) (fallback) =
 
 let executeQueryAsync (clientContext:ClientContext) =
     executeQueryAsyncWithFallback clientContext onQueryFailed
+
+let executeSilentQueryAsync (clientContext:ClientContext) =
+    executeQueryAsyncWithFallback clientContext nothingOnQueryFailed
+
 
 let createCustomList title url (clientContext : ClientContext) =
     async {
@@ -306,14 +314,14 @@ let startWorkFlow (context:ClientContext) (web:Web) (itemId) (subscriptionId) =
     async {
         let wfServiceManager = WorkflowServices()?WorkflowServicesManager?newObject(context, web)
         let subscription = wfServiceManager?getWorkflowSubscriptionService()?getSubscription(subscriptionId) :?> ClientObject
-        log "Loading subscription"
+        //log "Loading subscription"
         context.load(subscription)
-        do! executeQueryAsync context
+        do! executeSilentQueryAsync context
         let inputParameters = new System.Collections.Generic.Dictionary<string, obj>()
-        log "Successfully starting workflow."
+        //log "Successfully starting workflow."
         wfServiceManager?getWorkflowInstanceService()?startWorkflowOnListItem(subscription, itemId, inputParameters) |> ignore
-        do! executeQueryAsync context
-        log "workflow started successfully"
+        do! executeSilentQueryAsync context
+        //log "workflow started successfully"
     }
     |> Async.StartImmediate
 
@@ -335,3 +343,12 @@ let nearestFormRowParent el =
 
 [<Literal>]
 let idAttachmentsRow = "idAttachmentsRow"
+
+[<Emit("GetUrlKeyValue($0,$1,$2,$3)")>]
+let GetUrlKeyValue (keyName, bNoDecode, url, bCaseInsensitive) = jsNative
+
+[<Emit("SP.UI.ModalDialog.commonModalDialogClose($0,$1)")>]
+let commonModalDialogClose(dialogResult, returnValue) = jsNative
+
+[<Emit("rlfiShowMore()")>]
+let rlfiShowMore () = jsNative
