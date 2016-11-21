@@ -115,3 +115,21 @@ let readonlyAll el =
     el?find("*")?prop("contentEditable", false) |> ignore
     el?find("*")?prop("disabled", true) |> ignore
     
+[<Emit("RegExp($0)")>]
+let RegExp (par:string) = jsNative
+
+let matchRuleShort (str:string) (rule:string) : bool =
+    downcast ( RegExp ("^" + rule?split("*")?join(".*").ToString() + "$" ) )?test(str)
+
+let find (selector : string) el = 
+    el?find(selector)              
+
+let last el = el?last()
+
+let toStringSafe v =
+    if v = null then
+        ""
+    else
+        let vs = v.ToString()
+        if vs="null" then "" else vs
+

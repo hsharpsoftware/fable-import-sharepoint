@@ -352,3 +352,15 @@ let commonModalDialogClose(dialogResult, returnValue) = jsNative
 
 [<Emit("rlfiShowMore()")>]
 let rlfiShowMore () = jsNative
+
+let isCurrentUserMemberOfGroup (clientContext:ClientContext) (groupName:string) =
+    async {
+        let web = clientContext.get_web()
+        let currentUser = web.get_currentUser()
+        clientContext.load(currentUser)
+        let userGroups = currentUser.get_groups()
+        clientContext.load(userGroups)
+        do! executeQueryAsync clientContext
+
+        return userGroups |> convert<Group> |> Array.exists( fun p -> p.get_title() = groupName )
+    }
