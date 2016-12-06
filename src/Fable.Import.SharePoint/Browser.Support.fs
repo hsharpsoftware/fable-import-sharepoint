@@ -125,6 +125,7 @@ let find (selector : string) el =
     el?find(selector)              
 
 let last el = el?last()
+let first el = el?first()
 
 let toStringSafe v =
     if v = null then
@@ -133,3 +134,29 @@ let toStringSafe v =
         let vs = v.ToString()
         if vs="null" then "" else vs
 
+
+    
+
+let has (containedOrSelector:string) el = el?has(containedOrSelector)
+
+[<Emit("$0.length")>]
+let length el : int = jsNative
+
+let disable el =
+    el |> prop ("disabled", true) |> ignore
+
+let enable el = 
+    el |> prop ("disabled", false) |> ignore
+
+let enableOrDisable enabled el = 
+    el |> prop ("disabled", (not enabled) ) |> ignore
+
+let on (event:string) (func : unit->unit) el = el?on( event, fun () -> func() )
+    
+let width param el = 
+    el?width(param) |> ignore
+
+[<Emit("$0.id")>]
+let idP el : int = jsNative
+
+let empty el = el?empty() |> ignore

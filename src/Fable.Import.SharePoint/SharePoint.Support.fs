@@ -10,7 +10,8 @@ open Microsoft.FSharp.Reflection
 
 let onQueryFailed sender (args:ClientRequestFailedEventArgs) =
     let message = sprintf "Request failed. %s \n%s " (args.get_message()) (args.get_stackTrace())
-    failwith message
+    //failwith message
+    log message
 
 let nothingOnQueryFailed sender (args:ClientRequestFailedEventArgs) =
     ()
@@ -310,17 +311,29 @@ let getSubscriptionsByList (context:ClientContext) (web:Web) (listId) =
 [<Emit("SP.WorkflowServices")>]
 let WorkflowServices () = jsNative
 
-let startWorkFlow (context:ClientContext) (web:Web) (itemId) (subscriptionId) =
+let getSubscriptionById (context:ClientContext) (web:Web) (subscriptionId:string)=
+    let wfServiceManager = WorkflowServices()?WorkflowServicesManager?newObject(context, web)
+    let subscription = wfServiceManager?getWorkflowSubscriptionService()?getSubscription(subscriptionId) :?> ClientObject
+    //log "Loading subscription"
+    context.load(subscription)
+    subscription
+let startWorkFlow (context:ClientContext) (web:Web) (subscription) (itemId:int) =
     async {
         let wfServiceManager = WorkflowServices()?WorkflowServicesManager?newObject(context, web)
-        let subscription = wfServiceManager?getWorkflowSubscriptionService()?getSubscription(subscriptionId) :?> ClientObject
-        //log "Loading subscription"
-        context.load(subscription)
-        do! executeSilentQueryAsync context
         let inputParameters = new System.Collections.Generic.Dictionary<string, obj>()
         //log "Successfully starting workflow."
         wfServiceManager?getWorkflowInstanceService()?startWorkflowOnListItem(subscription, itemId, inputParameters) |> ignore
-        do! executeSilentQueryAsync context
+        do! executeQueryAsync context
+        //log "workflow started successfully"
+    }
+    |> Async.StartImmediate
+
+let startSiteWorkFlow (context:ClientContext) (web:Web) (subscription) (inputParameters) =
+    async {
+        let wfServiceManager = WorkflowServices()?WorkflowServicesManager?newObject(context, web)
+        //log "Successfully starting workflow."
+        wfServiceManager?getWorkflowInstanceService()?startWorkflow(subscription, inputParameters) |> ignore
+        do! executeQueryAsync context
         //log "workflow started successfully"
     }
     |> Async.StartImmediate
@@ -339,13 +352,20 @@ let disableDragAndDrop () =
 let ExecuteOrDelayUntilScriptLoaded (callback:unit->unit) (script:string) = jsNative
 
 let nearestFormRowParent el = 
-    el?parents("td .ms-formbody")?parent()
+    el?parents("td .ms-formbody, td .ms-formlabel")?parent()
+
+let nearestTd el = 
+    el?parents("td")
 
 [<Literal>]
 let idAttachmentsRow = "idAttachmentsRow"
 
 [<Emit("GetUrlKeyValue($0,$1,$2,$3)")>]
 let GetUrlKeyValue (keyName, bNoDecode, url, bCaseInsensitive) = jsNative
+
+[<Emit("GetUrlKeyValue($0)")>]
+let GetUrlKeyValue1 (keyName) = jsNative
+
 
 [<Emit("SP.UI.ModalDialog.commonModalDialogClose($0,$1)")>]
 let commonModalDialogClose(dialogResult, returnValue) = jsNative
@@ -363,4 +383,18 @@ let isCurrentUserMemberOfGroup (clientContext:ClientContext) (groupName:string) 
         do! executeQueryAsync clientContext
 
         return userGroups |> convert<Group> |> Array.exists( fun p -> p.get_title() = groupName )
+    }
+
+[<Emit("SP.ListOperation.Selection.getSelectedItems()")>]
+let getSelectedItems () = jsNative
+
+let getCurrentUserAsync (clientContext:ClientContext) =
+    async {
+        let web = clientContext.get_web()
+        let currentUser = web.get_currentUser()
+        clientContext.load(currentUser)
+        let userGroups = currentUser.get_groups()
+        clientContext.load(userGroups)
+        do! executeQueryAsync clientContext
+        return currentUser
     }
