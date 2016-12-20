@@ -38,6 +38,9 @@ let parentHasPart (part : string) =
     | Some(loc) -> loc.IndexOf(part) > -1
     | _ -> false
 
+let reloadPage() =
+  window.location.reload(false)
+
 [<Emit("alert($0)")>]
 let alert (x: string) : unit = jsNative
 
@@ -160,3 +163,18 @@ let width param el =
 let idP el : int = jsNative
 
 let empty el = el?empty() |> ignore
+
+let pathname =
+  window.location.pathname
+
+let hostname =
+  window.location.hostname
+
+let links =
+  document.getElementsByTagName("a")
+
+let getHostname (el: Element) = 
+  (el?hostname).ToString()
+
+let getPathname (el: Element) = 
+  (el?pathname).ToString()
