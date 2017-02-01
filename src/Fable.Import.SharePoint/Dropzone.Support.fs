@@ -68,12 +68,6 @@ let addRemoveLink file dropzone =
                                                filesToRemove <- filesToRemove |> Array.except file) |> ignore
     removeLink
 
-//let _sendIntercept file options =
-//    logD true "_sendIntercept started" 
-//    let result = new RSVP?Promise(fun resolve, reject ->
-//                                      if (options?readType)
-//                                  )
-
 
 let actionOnInit dropzone  =
     let submitButton = document.querySelector("#upload-all");
@@ -88,16 +82,7 @@ let actionOnInit dropzone  =
                                                filesToRemove |> Array.iter(fun file -> dropzone?removeFile(file) |> ignore )
                                                filesToRemove <- [||]) |> ignore
     dropzone?on("addedfile", fun file -> file?previewElement?appendChild(addRemoveLink file dropzone) |> ignore) |> ignore |> ignore
-//    dropzone?on("sending", fun file xhr data -> 
-//                                          logD true "sending started"
-//                                          //libName fileName fileContent
-//                                          let fileName = (file?name).ToString()
-//                                          let fileContent = (file?contents).ToString().Split(',').[1]
-//                                          saveFileToLibraryFun "Reports" fileName fileContent
-//                                          dropzone?removeFile(file)
-//
-//                                          
-//    ) |> ignore
+
 
 [<Emit("done()")>]
 let doneOnSuccess: unit = jsNative

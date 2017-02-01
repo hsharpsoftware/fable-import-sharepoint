@@ -398,3 +398,45 @@ let getCurrentUserAsync (clientContext:ClientContext) =
         do! executeQueryAsync clientContext
         return currentUser
     }
+
+let getUserByIdAsync (context:ClientContext) (web: Web) (id: float) =
+   async {
+      let user = web.get_siteUsers().getById(id)
+      context.load(user)
+      context.executeQueryAsync()
+      return user
+   } 
+
+let approveOrRejectTask (clientContext:ClientContext) (taskId: float) (listName: string) (approve: bool) =
+    async {
+        let list = clientContext.get_web().get_lists().getByTitle(listName)
+        let task = list.getItemById(taskId)
+        let status = 
+              match approve with
+              | true -> "Approved"
+              | false -> "Rejected"
+              
+        task.set_item("Completed",true)
+        task.set_item("PercentComplete",1)
+        task.set_item("Status",status)
+        task.set_item("WorkflowOutcome",status)
+        task.update()
+        do! executeQueryAsync clientContext
+    }
+
+[<Emit("new SP.ClientContext($0)")>]
+let getClientContext(url : string) = jsNative : ClientContext
+
+[<Emit("getCurrentCtx()")>]
+let getCurrentCtx() = jsNative : Fable.Import.SharePoint.ContextInfo
+
+[<Emit("SP.ListOperation.Selection.getSelectedList()")>]
+let getSelectedList() = jsNative 
+
+let updateColumnValue (context:ClientContext) (web: Web) (listName: string) (itemId: float) (columnName: string) (columnValue: obj) =
+  async {
+      let item = web.get_lists().getByTitle(listName).getItemById(itemId)
+      item.set_item(columnName, columnValue)
+      item.update()
+      do! executeQueryAsync context
+  }
