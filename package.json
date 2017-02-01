@@ -1,1 +1,24 @@
-{}
+{
+  "name": "fable-import-sharepoint",
+  "version": "0.0.0",
+  "description": "Fable bindings for SharePoint",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hsharpsoftware/fable-import-sharepoint"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/hsharpsoftware/fable-import-sharepoint/issues"
+  },
+  "homepage": "https://github.com/hsharpsoftware/fable-import-sharepoint/",
+  "devDependencies": {
+    "fable-compiler": "^0.7.31",
+    "fable-core": "^0.7.23",
+    "fs-extra": "^2.0.0"
+  }
+}
