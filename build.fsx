@@ -95,13 +95,13 @@ Target "Npm" (fun _ ->
             if npmFileName = "" then
                 { p with
                     Command = Install Standard
-                    WorkingDirectory = "./src/Fable.Import.SharePoint/"
+                    WorkingDirectory = "./src/"
                 }
             else
                 { p with
                     NpmFilePath = npmFileName
                     Command = Install Standard
-                    WorkingDirectory = "./src/Fable.Import.SharePoint/"
+                    WorkingDirectory = "./src/"
                 }
         )
 )

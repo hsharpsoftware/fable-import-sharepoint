@@ -17,7 +17,8 @@ then
 
   packages/FAKE/tools/FAKE.exe $@ --fsiargs build.fsx
   
-  src/Fable.Import.SharePoint/node_modules/.bin/fable.cmd
+  call npm install
+  node build
 else
   # use mono
   mono .paket/paket.bootstrapper.exe
@@ -41,5 +42,7 @@ else
   node --version
   
   chmod +x src/Fable.Import.SharePoint/node_modules/.bin/fable
-  src/Fable.Import.SharePoint/node_modules/.bin/fable
+  
+  npm install
+  node build
 fi
