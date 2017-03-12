@@ -365,7 +365,12 @@ let disableDragAndDrop () =
 let ExecuteOrDelayUntilScriptLoaded (callback:unit->unit) (script:string) = jsNative
 
 let nearestFormRowParent el = 
-    el?parents("td .ms-formbody, td .ms-formlabel")?parent()
+    try 
+        el?parents("td .ms-formbody, td .ms-formlabel")?parent()
+    with
+    | ex -> 
+        log (sprintf "nearestFormRowParent FAILED for %A [%A]" el ex )
+        null
 
 let nearestTd el = 
     el?parents("td")
@@ -532,3 +537,33 @@ let getLibraryNameFromUrl() =
       |> Array.findIndex(fun x -> x.Contains(".aspx"))
     urlParts.[(indexOfAspx-2)]
 
+let getVal (columnName:string) (item:ListItem)  = 
+    item.get_item(fixColumnName(columnName))
+
+[<Emit("jQuery('<div>').html($0).text()")>]
+let convertSimpleHtmlToText(text:string) = jsNative : string
+
+let getValS (columnName:string) (item:ListItem)  = 
+  getVal columnName item |> toStringSafe |> convertSimpleHtmlToText
+
+let getListItemsByCaml (web:Web) (context:ClientContext) (listName: string) (fieldNames: string) (camlQuery: string) (mapper)  =
+    async {
+        let itemList = web.get_lists().getByTitle(listName)
+        context.load(itemList)
+        do! executeQueryAsync context
+        //logO listName itemList
+
+        let caml = new CamlQuery()
+        //let xml = sprintf """<View><Query><Where><Eq><FieldRef Name='%s' /><Value Type='Boolean'>false</Value></Eq></Where></Query></View>""" columnName
+        caml.set_viewXml(camlQuery)
+
+        let listItems = itemList.getItems(caml)
+        context.load(listItems, (sprintf "Include(Id,%s)" fieldNames ) )
+        do! executeQueryAsync context
+        //logO "listItems" listItems
+        //logD (sprintf "listItems.get_count %A" (listItems.get_count()) )
+        
+        let res = listItems |> convert<ListItem> |> Array.map( mapper )
+        //logO "res" res
+        return res
+    }

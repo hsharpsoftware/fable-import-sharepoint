@@ -92,8 +92,11 @@ let getElementValue (selector: string) =
 let getElementHValue (elementId: string) =
     (elH (elementId)) |> text |> toString
 
-let checkRadio (elementId:string) =
+let checkHRadio (elementId:string) =
     (elH (elementId))?prop("checked",true) |> ignore
+
+let checkRadio (selector:string) =
+    (el (selector))?prop("checked",true) |> ignore
 
 [<Emit("jQuery()")>]
 let jQ () = jsNative
@@ -358,3 +361,17 @@ let getInputValueLength (input: HTMLElement) =
 
 let after html el = el?after(html)
     
+let dateTimeToStringSafe (d:System.DateTime) = 
+    let res = d.ToString("dd.MM.yyyy")
+    if res = "null" then "" else res
+
+let nearestRow el = 
+    try 
+        el?parents("tr")
+    with
+    | ex -> 
+        log (sprintf "nearestRow FAILED for %A [%A]" el ex )
+        null
+
+let closest sel el = 
+    el?closest(sel)
