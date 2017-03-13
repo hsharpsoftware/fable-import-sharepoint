@@ -9,9 +9,11 @@ open Browser.Support
 open Microsoft.FSharp.Reflection
 
 let onQueryFailed sender (args:ClientRequestFailedEventArgs) =
-    let message = sprintf "Request failed. %s \n%s " (args.get_message()) (args.get_stackTrace())
+    let message = sprintf "Request failed. %s \n%s\n " (args.get_message()) (args.get_stackTrace())
     //failwith message
     log message
+    logO args
+    log "------------------------------------------------------------------------"
 
 let nothingOnQueryFailed sender (args:ClientRequestFailedEventArgs) =
     ()
@@ -121,6 +123,17 @@ let executeQueryAsyncWithFallback (clientContext:ClientContext) (fallback) =
             System.Func<_,_,_>(fallback)
         )        
     )
+
+let executeQueryAsyncWithSuccessAndFallback (clientContext:ClientContext) (success) (fallback) =
+  Async.FromContinuations( fun( cont, econt, ccont ) ->
+      clientContext.executeQueryAsync(
+          System.Func<_,_,_>(success),
+          System.Func<_,_,_>(fallback)
+      )        
+  )
+
+let executeQueryAsyncWithSuccessCallback (clientContext:ClientContext) (onSuccess) =
+    executeQueryAsyncWithSuccessAndFallback clientContext onSuccess onQueryFailed
 
 let executeQueryAsync (clientContext:ClientContext) =
     executeQueryAsyncWithFallback clientContext onQueryFailed
@@ -352,7 +365,12 @@ let disableDragAndDrop () =
 let ExecuteOrDelayUntilScriptLoaded (callback:unit->unit) (script:string) = jsNative
 
 let nearestFormRowParent el = 
-    el?parents("td .ms-formbody, td .ms-formlabel")?parent()
+    try 
+        el?parents("td .ms-formbody, td .ms-formlabel")?parent()
+    with
+    | ex -> 
+        log (sprintf "nearestFormRowParent FAILED for %A [%A]" el ex )
+        null
 
 let nearestTd el = 
     el?parents("td")
@@ -408,24 +426,53 @@ let getUserByIdAsync (context:ClientContext) (web: Web) (id: float) =
    } 
 
 let approveOrRejectTask (clientContext:ClientContext) (taskId: float) (listName: string) (approve: bool) =
-    async {
-        let list = clientContext.get_web().get_lists().getByTitle(listName)
-        let task = list.getItemById(taskId)
-        let status = 
-              match approve with
-              | true -> "Approved"
-              | false -> "Rejected"
+  async {
+      let list = clientContext.get_web().get_lists().getByTitle(listName)
+      let task = list.getItemById(taskId)
+      let status = 
+            match approve with
+            | true -> "Approved"
+            | false -> "Rejected"
               
-        task.set_item("Completed",true)
-        task.set_item("PercentComplete",1)
-        task.set_item("Status",status)
-        task.set_item("WorkflowOutcome",status)
-        task.update()
-        do! executeQueryAsync clientContext
-    }
+      task.set_item("Completed",true)
+      task.set_item("PercentComplete",1)
+      task.set_item("Status",status)
+      task.set_item("WorkflowOutcome",status)
+      task.update()
+      do! executeQueryAsync clientContext
+  }
 
 [<Emit("new SP.ClientContext($0)")>]
 let getClientContext(url : string) = jsNative : ClientContext
+
+[<Emit("new SP.ListItemCreationInformation()")>]
+let getListItemCreationInformation() = jsNative : ListItemCreationInformation
+
+[<Emit("new SP.FieldLookupValue()")>]
+let getLookupFieldValue() = jsNative : FieldLookupValue
+
+[<Emit("createInfo.set_underlyingObjectType(SP.FileSystemObjectType.folder)")>]
+let setFolder() = jsNative 
+
+let createFolders (context: ClientContext) (library: List) (folderNames: string []) =
+  async {
+    Browser.Support.logO ("createFolder() started")
+
+    folderNames 
+    |> Array.iter(fun folderName ->
+            try
+                let createInfo = getListItemCreationInformation()
+                setFolder()
+                createInfo.set_leafName(folderName)    
+                let item = library.addItem(createInfo)
+                item.update()
+                context.load(item)
+            with
+            | ex -> log (sprintf "Creation of subfolder %s failed with %A" folderName ex )
+    )
+
+    do! executeQueryAsync context
+  }
 
 [<Emit("getCurrentCtx()")>]
 let getCurrentCtx() = jsNative : Fable.Import.SharePoint.ContextInfo
@@ -438,5 +485,85 @@ let updateColumnValue (context:ClientContext) (web: Web) (listName: string) (ite
       let item = web.get_lists().getByTitle(listName).getItemById(itemId)
       item.set_item(columnName, columnValue)
       item.update()
-      do! executeQueryAsync context
+      //do! executeQueryAsync context
   }
+
+let getAllListItems (context: ClientContext) (web: Web) (listName: string) (includePart: string) =
+  async {
+        let list = web.get_lists().getByTitle(listName)
+        
+        match includePart.Equals("") with 
+        | true -> context.load(list)
+        | false -> context.load(list, includePart)
+        do! executeQueryAsync context
+
+        let query = CamlQuery.createAllItemsQuery()
+
+        let items = list.getItems(query)
+        context.load(items)
+        do! executeQueryAsync context
+
+        Browser.Support.log(sprintf "listItems.get_count %A" (items.get_count()) )
+        return items
+  }
+
+let getSiteNameFromUrl() =
+    let urlParts = location.href.Split('/')
+    let committees =  
+        if location.href.Contains("/eon/") then "eon"
+        else "committees"
+    let index =
+        urlParts
+        |> Array.findIndex(fun f -> f.Equals(committees))
+    urlParts.[index+2]
+
+let getNormalizedSiteName () =
+      let urlSpace = "%20"
+      let originalBoardName = getSiteNameFromUrl()
+      let boardName = originalBoardName.Replace(urlSpace, " ")
+      boardName
+
+let getListNameFromUrl() =
+    let urlParts = location.href.Split('/')
+    let indexOfAspx =
+      urlParts
+      |> Array.findIndex(fun x -> x.Contains(".aspx"))
+    urlParts.[(indexOfAspx-1)]
+
+let getLibraryNameFromUrl() =
+    let urlParts = location.href.Split('/')
+    let indexOfAspx =
+      urlParts
+      |> Array.findIndex(fun x -> x.Contains(".aspx"))
+    urlParts.[(indexOfAspx-2)]
+
+let getVal (columnName:string) (item:ListItem)  = 
+    item.get_item(fixColumnName(columnName))
+
+[<Emit("jQuery('<div>').html($0).text()")>]
+let convertSimpleHtmlToText(text:string) = jsNative : string
+
+let getValS (columnName:string) (item:ListItem)  = 
+  getVal columnName item |> toStringSafe |> convertSimpleHtmlToText
+
+let getListItemsByCaml (web:Web) (context:ClientContext) (listName: string) (fieldNames: string) (camlQuery: string) (mapper)  =
+    async {
+        let itemList = web.get_lists().getByTitle(listName)
+        context.load(itemList)
+        do! executeQueryAsync context
+        //logO listName itemList
+
+        let caml = new CamlQuery()
+        //let xml = sprintf """<View><Query><Where><Eq><FieldRef Name='%s' /><Value Type='Boolean'>false</Value></Eq></Where></Query></View>""" columnName
+        caml.set_viewXml(camlQuery)
+
+        let listItems = itemList.getItems(caml)
+        context.load(listItems, (sprintf "Include(Id,%s)" fieldNames ) )
+        do! executeQueryAsync context
+        //logO "listItems" listItems
+        //logD (sprintf "listItems.get_count %A" (listItems.get_count()) )
+        
+        let res = listItems |> convert<ListItem> |> Array.map( mapper )
+        //logO "res" res
+        return res
+    }

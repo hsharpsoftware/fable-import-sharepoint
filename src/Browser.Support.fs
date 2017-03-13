@@ -8,6 +8,18 @@ open Fable.Core.JsInterop
 // http://www.fssnip.net/9l
 open Microsoft.FSharp.Reflection
 
+[<Emit("console.log($0)")>]
+let log (message:string) : unit = jsNative
+
+[<Emit("console.log($0)")>]
+let logO (value:obj) : unit = jsNative
+
+[<Emit("window.Foo.default($0)")>]
+let renderMeetingComponentWithoutCallback (data) = jsNative
+
+[<Emit("window.Foo.default($0, $1, $2, $3, $4, $5, $6, $7)")>]
+let renderMeetingComponent (insertItem) (updateItem) (deleteItem) (data) (confM) (confA) (attchsAgenda) (attchsActions) = jsNative
+
 let onDocumentReady (callback:unit->unit) : unit =
     document.onreadystatechange <- fun _ -> 
         if document.readyState = "complete" then
@@ -20,9 +32,16 @@ let windowParentLocation =
     with
     | _ -> None
 
-let getIndexOfUrlPart (part : string) : int =
+let getUrlWithoutParams() : string =
     let urlWithoutParams = window.location.href.Replace(window.location.search, "")
-    urlWithoutParams.IndexOf(part)
+   
+    urlWithoutParams
+
+let getIndexOfUrlPart (part : string) : int =
+    let urlWithoutParams = getUrlWithoutParams().ToLower()
+    let index = urlWithoutParams.IndexOf(part.ToLower())
+    index
+    
 
 let locationHasPart (part : string) =
     getIndexOfUrlPart part > -1
@@ -39,36 +58,12 @@ let parentHasPart (part : string) =
     | Some(loc) -> loc.IndexOf(part) > -1
     | _ -> false
 
-let getSiteNameFromUrl() =
-    let urlParts = location.href.Split('/')
-    let length = urlParts.Length
-    urlParts.[length-3]
-
-let getListNameFromUrl() =
-    let urlParts = location.href.Split('/')
-    let indexOfAspx =
-      urlParts
-      |> Array.findIndex(fun x -> x.Contains(".aspx"))
-    urlParts.[(indexOfAspx-1)]
-
-let getLibraryNameFromUrl() =
-    let urlParts = location.href.Split('/')
-    let indexOfAspx =
-      urlParts
-      |> Array.findIndex(fun x -> x.Contains(".aspx"))
-    urlParts.[(indexOfAspx-2)]
 
 let reloadPage() =
   window.location.reload(false)
 
 [<Emit("alert($0)")>]
 let alert (x: string) : unit = jsNative
-
-[<Emit("console.log($0)")>]
-let log (message:string) : unit = jsNative
-
-[<Emit("console.log($0)")>]
-let logO (value:obj) : unit = jsNative
 
 [<Emit("jQuery($0)")>]
 let el (cssSelector:string) = jsNative
@@ -97,8 +92,11 @@ let getElementValue (selector: string) =
 let getElementHValue (elementId: string) =
     (elH (elementId)) |> text |> toString
 
-let checkRadio (elementId:string) =
+let checkHRadio (elementId:string) =
     (elH (elementId))?prop("checked",true) |> ignore
+
+let checkRadio (selector:string) =
+    (el (selector))?prop("checked",true) |> ignore
 
 [<Emit("jQuery()")>]
 let jQ () = jsNative
@@ -112,9 +110,15 @@ type ajaxParameters = {
     success : string -> unit
 }
 
+[<Emit("jQuery.getScript($0, $1)")>]
+let getScript (src: string) (callback: unit->unit) = jsNative
+
+[<Emit("jQuery.getScript($0).done($1).fail($2)")>]
+let getScriptWithFail (src: string) (successCallback: string->string->unit) (failCallback: obj->obj->obj->unit) = jsNative
+
+
 [<Emit("jQuery.ajax($0)")>]
 let ajax (parameter:ajaxParameters) = jsNative
-
 
 let postJSON url data callback =
     ajax(
@@ -149,7 +153,10 @@ let remove el = el?remove()
 let setTimeout (callback:unit->unit) (miliseconds) = jsNative
 let prop (value : string*'A) el = 
                   let name, v = value
-                  el?prop(name,v)              
+                  el?prop(name,v)          
+                  
+let getInnerText(el: Element): string = 
+    (el?innerText).ToString()
 
 let readonlyAll el = 
     el?find("*")?prop("contentEditable", false) |> ignore
@@ -208,6 +215,9 @@ let pathname =
 let hostname =
     window.location.hostname
 
+let host =
+    window.location.host
+
 let links =
     document.getElementsByTagName("a")
 
@@ -216,6 +226,9 @@ let getElementById (id: string) =
 
 let getElementsByClass (className: string) =
     document.getElementsByClassName(className)
+
+let getElementsByName (name: string) =
+    document.getElementsByName(name)    
 
 let getChildrenByClass (className: string) (parent: Element) = 
     parent.getElementsByClassName(className)
@@ -234,6 +247,12 @@ let createParamLinkPostfix (linkDescription: string) (paramValue: string) (url: 
       
   let link = document.createElement("a")
   link.setAttribute("href", path)
+  link.textContent <- linkDescription
+  link
+
+let createLinkElement (linkDescription: string) (url: string) =
+  let link = document.createElement("a")
+  link.setAttribute("href", url)
   link.textContent <- linkDescription
   link
 
@@ -291,6 +310,11 @@ let createButton (text: string) =
     submit.textContent <- text
     submit
 
+let createDiv (id: string) = 
+    let div = document.createElement("div")
+    div.id <- id
+    div
+
 let addButton (name: string) (parent) (onClick) =
     let submit = createButton name
     submit.id <- name
@@ -334,3 +358,20 @@ let getInputValueLength (input: HTMLElement) =
     let res = iEl.value
     logO res
     res.Length
+
+let after html el = el?after(html)
+    
+let dateTimeToStringSafe (d:System.DateTime) = 
+    let res = d.ToString("dd.MM.yyyy")
+    if res = "null" then "" else res
+
+let nearestRow el = 
+    try 
+        el?parents("tr")
+    with
+    | ex -> 
+        log (sprintf "nearestRow FAILED for %A [%A]" el ex )
+        null
+
+let closest sel el = 
+    el?closest(sel)
