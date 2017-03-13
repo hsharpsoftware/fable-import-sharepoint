@@ -1,3 +1,6 @@
+### 0.1.2
+* Dropzone, JsXlsx and H# support
+
 ### 0.1.1
 * dateTimeToStringSafe
 * nearestRow

@@ -55,6 +55,9 @@
     <Compile Include="Fable.Import.SharePoint.fs" />
     <Compile Include="Browser.Support.fs" />
     <Compile Include="SharePoint.Support.fs" />
+    <Compile Include="JsXlsx.Support.fs" />
+    <Compile Include="HSharp.fs" />
+    <Compile Include="Dropzone.Support.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Fable.Core">
