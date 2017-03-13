@@ -1,3 +1,6 @@
+### 0.1.3
+* remove dead function createListColumn for now
+
 ### 0.1.2
 * Dropzone, JsXlsx and H# support
 
