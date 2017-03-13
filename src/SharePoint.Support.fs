@@ -202,44 +202,6 @@ let private createCustomListInt title url (createContentType:bool) continue1 (li
         )        
     )
 
-let createListColumn (list : List) (contentType:ContentType option) id name displayName (fieldTypeName:string) required (lookupListId:Guid option) (lookupFieldName:string option) (clientContext : ClientContext) =
-    async {
-        let fields = list.get_fields()
-        clientContext.load(fields) 
-        do! executeQueryAsync clientContext
-        let field = fields.getByTitle(displayName)
-        clientContext.load(field) 
-        do! executeQueryAsyncWithFallback clientContext (fun _ _ -> 
-            async {
-                    let field = 
-                        match lookupListId, lookupFieldName with
-                        | None, None ->
-                            fields.addFieldAsXml(
-                                sprintf """<Field ID="{%s}" StaticName="%s" Name="%s" DisplayName="%s" Type="%s" Required="%s" />""" id name name displayName fieldTypeName (required.ToString().ToLower()), 
-                                true, 
-                                AddFieldOptions.addToAllContentTypes
-                            )
-                        | Some(lName), Some(fName) ->
-                            fields.addFieldAsXml(
-                                sprintf """<Field ID="{%s}" StaticName="%s" Name="%s" DisplayName="%s" Type="%s" List="{%s}" ShowField="%s" Required="%s" />""" id name name displayName fieldTypeName (lName.toString()) fName (required.ToString().ToLower()), 
-                                true, 
-                                AddFieldOptions.addToAllContentTypes
-                            )
-                    clientContext.load(field) 
-                    do! executeQueryAsync clientContext
-                    match contentType with
-                    | Some(c) -> 
-                        let fieldLinkCreatingInformation = FieldLinkCreationInformation()
-                        fieldLinkCreatingInformation.set_field( field )
-                        c.get_fieldLinks().add(fieldLinkCreatingInformation) |> ignore
-                        c.update(true)
-                        do! executeQueryAsync clientContext
-                    | _ -> ()
-                } |> Async.StartImmediate
-           )
-    } |> Async.StartImmediate
-    
-
 let getListId title (listCollection:ListCollection) (clientContext : ClientContext) = 
     async {
         let list1 = listCollection.getByTitle(title)
@@ -249,36 +211,6 @@ let getListId title (listCollection:ListCollection) (clientContext : ClientConte
     } |> Async.RunSynchronously
 
 let fixColumnName (name:string) = name.Replace(" ", "_x0020_")
-
-let createCustomLists (listDefinitions:ListDefinition array) continue1 (clientContext : ClientContext) =
-    let web = clientContext.get_web()
-    let listCollection = web.get_lists()
-    let fixColumnId (s:string) =
-        if System.String.IsNullOrWhiteSpace(s) then
-            System.Guid.NewGuid().ToString()
-        else
-            "{" + s + "}"
-    clientContext.load(listCollection)
-    let rec continue0 index fieldsIndex list (contentType:ContentType option)  (clientContext : ClientContext) =        
-        if index < listDefinitions.Length then
-            if fieldsIndex >= 0 then
-                if fieldsIndex < listDefinitions.[index].Fields.Length then
-                    let fieldDefinition = listDefinitions.[index].Fields.[fieldsIndex]
-                    match fieldDefinition with
-                    | StandardFieldDefinition(fieldDefinition) ->
-                        createListColumn list contentType (fixColumnId(fieldDefinition.ID)) fieldDefinition.Name fieldDefinition.DisplayName fieldDefinition.FieldType.toString fieldDefinition.Required None None clientContext
-                        (continue0 index (fieldsIndex+1) list contentType ) clientContext
-                    | LookupFieldDefinition(fieldDefinition) ->
-                        let list = getListId fieldDefinition.LookupListName listCollection clientContext                        
-                        createListColumn list contentType (fixColumnId(fieldDefinition.ID)) fieldDefinition.Name fieldDefinition.DisplayName "Lookup" fieldDefinition.Required (Some(list.get_id())) (Some(fixColumnName(fieldDefinition.LookupFieldDisplayName))) clientContext
-                        (continue0 index (fieldsIndex+1) list contentType ) clientContext                     
-                else
-                    continue0 (index+1) -1 null None clientContext 
-            else
-                let listDefinition =  listDefinitions.[index]
-                createCustomListInt listDefinition.DisplayName listDefinition.Url true (continue0 index (fieldsIndex+1) ) listCollection web clientContext
-        else continue1(clientContext)
-    continue0 0 -1 null None clientContext
 
 type SPCascadeDropDownSetup = {
     relationshipList : string
