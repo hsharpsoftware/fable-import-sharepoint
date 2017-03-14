@@ -40,10 +40,12 @@ type ApplicationV2Wrapper(app:IApplicationV2) =
         member this.isDebug = app.isDebug
         member this.getSiteFromUrl url = app.getSiteFromUrl url
         member this.getEndPointFromUrl url = 
-            let page = app.getPages() |> Array.tryFind( fun p -> locationHasPart p.path )            
+            let site = app.getSiteFromUrl url
+            let potentialPages = app.getPages() |> Array.where( fun p -> locationHasPart p.path )
+            let page = potentialPages |> Array.tryFind( fun p -> p.site = site )       
             page |> Microsoft.FSharp.Core.Option.map ( fun p -> ApplicationV2EndPoint(p) :> IEndPoint )
         member this.render (site:ISite option) (endPoint:IEndPoint option) =
-            let page = ( endPoint :?> ApplicationV2EndPoint ).Page
+            let page = ( endPoint.Value :?> ApplicationV2EndPoint ).Page
             page.render()
         member this.scheduled (site:ISite option) (endPoint:IEndPoint option) = app.scheduled site endPoint        
 
