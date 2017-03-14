@@ -13,29 +13,38 @@ type IEndPoint = interface end
 
 type IApplicationCore = 
     abstract member isDebug: bool
-    abstract member scheduled: (ISite option) -> (IEndPoint option) -> unit
 
 type IApplication = 
     inherit IApplicationCore
     abstract member getEndPointFromUrl: string -> IEndPoint option
     abstract member render: (ISite option) -> (IEndPoint option) -> unit
     abstract member getSiteFromUrl: string -> ISite option
+    abstract member scheduled: (ISite option) -> (IEndPoint option) -> unit
 
 type ISite2 = 
     abstract member path: string
 
-type IPage = 
+type ILocalized = 
     abstract member path: string
     abstract member site : ISite option
+
+type IPage = 
+    inherit ILocalized
     abstract member render: unit -> unit
+
+type IScheduledTask = 
+    inherit ILocalized
+    abstract member run: unit -> unit
 
 type IApplicationV2 = 
     inherit IApplicationCore
     abstract member getPages : unit -> (IPage array)
     abstract member getSites : unit -> (ISite2 array)
+    abstract member getScheduledTasks : unit -> (IScheduledTask array)
 
-type ApplicationV2EndPoint(page:IPage) =
+type ApplicationV2EndPoint(page:IPage, task:IScheduledTask option) =
     member m.Page = page
+    member m.ScheduledTask = task
     interface IEndPoint
 
 type ApplicationV2Site(site:ISite2) =
@@ -55,16 +64,26 @@ type ApplicationV2Wrapper(app:IApplicationV2) =
         member this.getEndPointFromUrl url = 
             let site = this.w.getSiteFromUrl url
             let potentialPages = app.getPages() |> Array.where( fun p -> locationHasPart p.path )
+            let potentialScheduledTasks = app.getScheduledTasks() |> Array.where( fun p -> locationHasPart p.path )
             let page = 
                 let pageWithSite = potentialPages |> Array.tryFind( fun p -> p.site = site )   
                 if pageWithSite.IsNone then
                     potentialPages |> Array.tryHead
                 else pageWithSite
-            page |> Microsoft.FSharp.Core.Option.map ( fun p -> ApplicationV2EndPoint(p) :> IEndPoint )
+            let task = 
+                let taskWithSite = potentialScheduledTasks |> Array.tryFind( fun p -> p.site = site )   
+                if taskWithSite.IsNone then
+                    potentialScheduledTasks |> Array.tryHead
+                else taskWithSite
+            page |> Microsoft.FSharp.Core.Option.map ( fun p -> ApplicationV2EndPoint(p, task) :> IEndPoint )
         member this.render (site:ISite option) (endPoint:IEndPoint option) =
-            let page = ( endPoint.Value :?> ApplicationV2EndPoint ).Page
-            page.render()
-        member this.scheduled (site:ISite option) (endPoint:IEndPoint option) = app.scheduled site endPoint        
+            if endPoint.IsSome then
+                let page = ( endPoint.Value :?> ApplicationV2EndPoint ).Page
+                page.render()
+        member this.scheduled (site:ISite option) (endPoint:IEndPoint option) = 
+            if endPoint.IsSome then
+                let task = ( endPoint.Value :?> ApplicationV2EndPoint ).ScheduledTask
+                task |> Microsoft.FSharp.Core.Option.iter( fun t -> t.run() )
 
 let logD isDebug message =
     if isDebug then log message

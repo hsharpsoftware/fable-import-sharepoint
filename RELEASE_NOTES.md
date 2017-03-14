@@ -1,3 +1,6 @@
+### 0.2.2
+* IScheduledTask added
+
 ### 0.2.1
 * ISite2 added
 
@@ -22,5 +25,4 @@
 * getVal & getValS
 
 ### 0.1.0
-
 * Initial release
