@@ -1,3 +1,6 @@
+### 0.2.1
+* ISite2 added
+
 ### 0.2.0
 * IApplicationV2 started
 

@@ -14,12 +14,15 @@ type IEndPoint = interface end
 type IApplicationCore = 
     abstract member isDebug: bool
     abstract member scheduled: (ISite option) -> (IEndPoint option) -> unit
-    abstract member getSiteFromUrl: string -> ISite option
 
 type IApplication = 
     inherit IApplicationCore
     abstract member getEndPointFromUrl: string -> IEndPoint option
     abstract member render: (ISite option) -> (IEndPoint option) -> unit
+    abstract member getSiteFromUrl: string -> ISite option
+
+type ISite2 = 
+    abstract member path: string
 
 type IPage = 
     abstract member path: string
@@ -29,18 +32,28 @@ type IPage =
 type IApplicationV2 = 
     inherit IApplicationCore
     abstract member getPages : unit -> (IPage array)
+    abstract member getSites : unit -> (ISite2 array)
 
 type ApplicationV2EndPoint(page:IPage) =
     member m.Page = page
     interface IEndPoint
 
+type ApplicationV2Site(site:ISite2) =
+    member m.Site = site
+    interface ISite
+
 type ApplicationV2Wrapper(app:IApplicationV2) =
     member m.ApplicationV2 = app
+    member m.w = m :> IApplication
     interface IApplication with
         member this.isDebug = app.isDebug
-        member this.getSiteFromUrl url = app.getSiteFromUrl url
+        member this.getSiteFromUrl url = 
+            app.getSites() 
+            |> Array.tryFind( fun p -> locationHasPart url )
+            |> Microsoft.FSharp.Core.Option.map ( fun p -> ApplicationV2Site(p) :> ISite )
+
         member this.getEndPointFromUrl url = 
-            let site = app.getSiteFromUrl url
+            let site = this.w.getSiteFromUrl url
             let potentialPages = app.getPages() |> Array.where( fun p -> locationHasPart p.path )
             let page = 
                 let pageWithSite = potentialPages |> Array.tryFind( fun p -> p.site = site )   
