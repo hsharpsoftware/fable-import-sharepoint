@@ -1,3 +1,6 @@
+### 0.2.0
+* IApplicationV2 started
+
 ### 0.1.4
 * getListId -> getListIdAsync
 
