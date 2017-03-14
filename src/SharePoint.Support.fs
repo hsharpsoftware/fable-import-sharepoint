@@ -202,13 +202,13 @@ let private createCustomListInt title url (createContentType:bool) continue1 (li
         )        
     )
 
-let getListId title (listCollection:ListCollection) (clientContext : ClientContext) = 
+let getListIdAsync title (listCollection:ListCollection) (clientContext : ClientContext) = 
     async {
         let list1 = listCollection.getByTitle(title)
         clientContext.load(list1, "Id")
         do! executeQueryAsync clientContext
         return list1
-    } |> Async.RunSynchronously
+    }
 
 let fixColumnName (name:string) = name.Replace(" ", "_x0020_")
 

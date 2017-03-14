@@ -1,3 +1,6 @@
+### 0.1.4
+* getListId -> getListIdAsync
+
 ### 0.1.3
 * remove dead function createListColumn for now
 
