@@ -11,12 +11,41 @@ open Microsoft.FSharp.Reflection
 type ISite = interface end
 type IEndPoint = interface end
 
-type IApplication = 
+type IApplicationCore = 
     abstract member isDebug: bool
+    abstract member scheduled: (ISite option) -> (IEndPoint option) -> unit
     abstract member getSiteFromUrl: string -> ISite option
+
+type IApplication = 
+    inherit IApplicationCore
     abstract member getEndPointFromUrl: string -> IEndPoint option
     abstract member render: (ISite option) -> (IEndPoint option) -> unit
-    abstract member scheduled: (ISite option) -> (IEndPoint option) -> unit
+
+type IPage = 
+    abstract member path: string
+    abstract member site : ISite option
+    abstract member render: unit -> unit
+
+type IApplicationV2 = 
+    inherit IApplicationCore
+    abstract member getPages : unit -> (IPage array)
+
+type ApplicationV2EndPoint(page:IPage) =
+    member m.Page = page
+    interface IEndPoint
+
+type ApplicationV2Wrapper(app:IApplicationV2) =
+    member m.ApplicationV2 = app
+    interface IApplication with
+        member this.isDebug = app.isDebug
+        member this.getSiteFromUrl url = app.getSiteFromUrl url
+        member this.getEndPointFromUrl url = 
+            let page = app.getPages() |> Array.tryFind( fun p -> locationHasPart p.path )            
+            page |> Microsoft.FSharp.Core.Option.map ( fun p -> ApplicationV2EndPoint(p) :> IEndPoint )
+        member this.render (site:ISite option) (endPoint:IEndPoint option) =
+            let page = ( endPoint :?> ApplicationV2EndPoint ).Page
+            page.render()
+        member this.scheduled (site:ISite option) (endPoint:IEndPoint option) = app.scheduled site endPoint        
 
 let logD isDebug message =
     if isDebug then log message
