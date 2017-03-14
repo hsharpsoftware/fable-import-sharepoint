@@ -12,3 +12,13 @@ There are already some helper JavaScript libraries like [SharePoint Cascaded Loo
 [The Patterns and Practices JavaScript Core Library](https://github.com/SharePoint/PnP-JS-Core).
 
 If you want to build an application in SharePoint and modify the form functionality in F#, you implement `IApplicationV2` interface.
+
+## JavaScript API reference for SharePoint 2013 (JSOM)
+Most of the functions from [JavaScript API reference for SharePoint 2013 (JSOM)](https://msdn.microsoft.com/en-us/library/office/jj193034.aspx) are available as Fable interfaces and F# functions.
+
+    async {
+        let! currentUser = clientContext |> getCurrentUserAsync
+        let selectedIds = getSelectedIds()
+        let list = web.get_lists().getByTitle(listName)        
+        logO "List" list
+    } |> Async.StartImmediate
