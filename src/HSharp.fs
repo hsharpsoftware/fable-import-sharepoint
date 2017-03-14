@@ -42,7 +42,11 @@ type ApplicationV2Wrapper(app:IApplicationV2) =
         member this.getEndPointFromUrl url = 
             let site = app.getSiteFromUrl url
             let potentialPages = app.getPages() |> Array.where( fun p -> locationHasPart p.path )
-            let page = potentialPages |> Array.tryFind( fun p -> p.site = site )       
+            let page = 
+                let pageWithSite = potentialPages |> Array.tryFind( fun p -> p.site = site )   
+                if pageWithSite.IsNone then
+                    potentialPages |> Array.tryHead
+                else pageWithSite
             page |> Microsoft.FSharp.Core.Option.map ( fun p -> ApplicationV2EndPoint(p) :> IEndPoint )
         member this.render (site:ISite option) (endPoint:IEndPoint option) =
             let page = ( endPoint.Value :?> ApplicationV2EndPoint ).Page
