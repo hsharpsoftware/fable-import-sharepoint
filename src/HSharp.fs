@@ -87,8 +87,8 @@ type ApplicationV2Wrapper(app:IApplicationV2) =
             let s = (if site.IsSome then site.Value else (ApplicationV2Site("") :> ISite)) :?> ApplicationV2Site 
             if endPoint.IsSome then                
                 let ep = endPoint.Value :?> ApplicationV2EndPoint
-                let isTheSameSite = s.Site.Equals((ep.Page.path.Split('*')).[0])
-                if isTheSameSite then
+                let canRender = s.Site.Equals((ep.Page.path.Split('*')).[0]) || (ep.Page.path.Split('*')).[0].Equals("")
+                if canRender then
                     let page = ( endPoint.Value :?> ApplicationV2EndPoint ).Page
                     page.render()
         member this.scheduled (site:ISite option) (endPoint:IEndPoint option) = 
