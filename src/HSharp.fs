@@ -62,17 +62,12 @@ type ApplicationV2Wrapper(app:IApplicationV2) =
         let pathAsterixSeparatorForSplit = PathAsterixSeparator.ToCharArray().[0]
         p.Split(pathAsterixSeparatorForSplit)
 
-    let runIfPathMatch (site:ISite option) (endPoint:IEndPoint option) localizator run =
-        let s = (if site.IsSome then site.Value else (ApplicationV2Site("") :> ISite)) :?> ApplicationV2Site 
-        if endPoint.IsSome then                
-            let ep = endPoint.Value :?> ApplicationV2EndPoint
-            let globalPart (p:ILocalized option) = 
-                (splitByPathAsterixSeparator p.path).[0]
-            let canRender = 
-                let sitePath = ep |> localizator |> globalPart
-                s.Site = sitePath || sitePath = ""
-            if canRender then
-                ep |> run
+    let runIfMatch which what (endPoint:IEndPoint option) = 
+        let runOnEp  (ep:IEndPoint) = 
+            (ep :?> ApplicationV2EndPoint) |> which |> Microsoft.FSharp.Core.Option.iter (what)
+        endPoint 
+        |> Microsoft.FSharp.Core.Option.iter (runOnEp)
+
     member m.ApplicationV2 = app
     member m.w = m :> IApplication
     interface IApplication with
@@ -109,9 +104,9 @@ type ApplicationV2Wrapper(app:IApplicationV2) =
             else
                 Some(upcast ApplicationV2EndPoint(page, task))
         member this.render (site:ISite option) (endPoint:IEndPoint option) =
-            runIfPathMatch site endPoint (fun ep->ep.Page) (fun ep->ep.Page.render())
+            endPoint |> runIfMatch (fun ep->ep.Page) (fun page->page.render())
         member this.scheduled (site:ISite option) (endPoint:IEndPoint option) = 
-            runIfPathMatch site endPoint (fun ep->ep.ScheduledTask) (fun ep->ep.ScheduledTask.run())
+            endPoint |> runIfMatch (fun ep->ep.ScheduledTask) (fun task->task.run())
 let startApplication (application:IApplication) =
     let isDebug = application.isDebug
     let logD message =
