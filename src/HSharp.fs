@@ -41,7 +41,7 @@ type IApplicationV2 =
     abstract member getSites : unit -> (string array)
     abstract member getScheduledTasks : unit -> (IScheduledTask array)
 
-type ApplicationV2EndPoint(page:IPage, task:IScheduledTask option) =
+type ApplicationV2EndPoint(page:IPage option, task:IScheduledTask option) =
     member m.Page = page
     member m.ScheduledTask = task
     interface IEndPoint
@@ -61,6 +61,18 @@ type ApplicationV2Wrapper(app:IApplicationV2) =
     let splitByPathAsterixSeparator (p:string) = 
         let pathAsterixSeparatorForSplit = PathAsterixSeparator.ToCharArray().[0]
         p.Split(pathAsterixSeparatorForSplit)
+
+    let runIfPathMatch (site:ISite option) (endPoint:IEndPoint option) localizator run =
+        let s = (if site.IsSome then site.Value else (ApplicationV2Site("") :> ISite)) :?> ApplicationV2Site 
+        if endPoint.IsSome then                
+            let ep = endPoint.Value :?> ApplicationV2EndPoint
+            let globalPart (p:ILocalized option) = 
+                (splitByPathAsterixSeparator p.path).[0]
+            let canRender = 
+                let sitePath = ep |> localizator |> globalPart
+                s.Site = sitePath || sitePath = ""
+            if canRender then
+                ep |> run
     member m.ApplicationV2 = app
     member m.w = m :> IApplication
     interface IApplication with
@@ -92,25 +104,14 @@ type ApplicationV2Wrapper(app:IApplicationV2) =
 
             let page = potentialPages |> findByPathAndConvert
             let task = potentialScheduledTasks |> findByPathAndConvert
-            page |> Microsoft.FSharp.Core.Option.map ( fun p -> ApplicationV2EndPoint(p, task) :> IEndPoint )
+            if page.IsNone && task.IsNone then 
+                None
+            else
+                Some(upcast ApplicationV2EndPoint(page, task))
         member this.render (site:ISite option) (endPoint:IEndPoint option) =
-            let s = (if site.IsSome then site.Value else (ApplicationV2Site("") :> ISite)) :?> ApplicationV2Site 
-            if endPoint.IsSome then                
-                let ep = endPoint.Value :?> ApplicationV2EndPoint
-                let globalPart (p:ILocalized) = (splitByPathAsterixSeparator p.path).[0]
-                let canRender = 
-                    let sitePath = ep.Page |> globalPart
-                    s.Site = sitePath || sitePath = ""
-                if canRender then
-                    let page = ( endPoint.Value :?> ApplicationV2EndPoint ).Page
-                    page.render()
+            runIfPathMatch site endPoint (fun ep->ep.Page) (fun ep->ep.Page.render())
         member this.scheduled (site:ISite option) (endPoint:IEndPoint option) = 
-            if endPoint.IsSome then
-                let task = ( endPoint.Value :?> ApplicationV2EndPoint ).ScheduledTask
-                task |> Microsoft.FSharp.Core.Option.iter( fun t -> t.run() )
-
-
-
+            runIfPathMatch site endPoint (fun ep->ep.ScheduledTask) (fun ep->ep.ScheduledTask.run())
 let startApplication (application:IApplication) =
     let isDebug = application.isDebug
     let logD message =
@@ -127,9 +128,7 @@ let startApplication (application:IApplication) =
     logD "Rendered"
 
     let rec scheduler () = 
-        //logD "Running scheduled task..."
         application.scheduled site endpoint
-        //logD "... done"
         setTimeout scheduler 1000
 
     logD "Scheduling the task for the very first time"
