@@ -76,16 +76,22 @@ type ApplicationV2Wrapper(app:IApplicationV2) =
             let localPart (p:ILocalized) = (splitByPathAsterixSeparator p.path).[1]
             let potentialPages = app.getPages() |> Array.where( localPart >> locationHasPart )
             let potentialScheduledTasks = app.getScheduledTasks() |> Array.where( localPart >> locationHasPart )
-            let page = 
-                let pageWithSite = potentialPages |> Array.tryFind( fun p -> p.path.Contains((site.Value).ToString()) )   
-                if pageWithSite.IsNone then
-                    potentialPages |> Array.tryHead
-                else pageWithSite
-            let task = 
-                let taskWithSite = potentialScheduledTasks |> Array.tryFind( fun p -> p.path.Contains((site.Value).ToString()))   
-                if taskWithSite.IsNone then
-                    potentialScheduledTasks |> Array.tryHead
-                else taskWithSite
+
+            let findByPathAndConvert x = 
+                let convert1 arr =
+                    let convertOne x : ILocalized = upcast x
+                    arr 
+                    |> Array.map (convertOne)
+
+                let findByPath (potentials:ILocalized array):ILocalized option = 
+                    let localizedWithSite = potentials |> Array.tryFind( fun p -> p.path.Contains((site.Value).ToString()) )   
+                    if localizedWithSite.IsNone then
+                        potentials |> Array.tryHead
+                    else localizedWithSite
+                x |> convert1 |> findByPath |> Microsoft.FSharp.Core.Option.map ( fun p -> downcast p)
+
+            let page = potentialPages |> findByPathAndConvert
+            let task = potentialScheduledTasks |> findByPathAndConvert
             page |> Microsoft.FSharp.Core.Option.map ( fun p -> ApplicationV2EndPoint(p, task) :> IEndPoint )
         member this.render (site:ISite option) (endPoint:IEndPoint option) =
             let s = (if site.IsSome then site.Value else (ApplicationV2Site("") :> ISite)) :?> ApplicationV2Site 
