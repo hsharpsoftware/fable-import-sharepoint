@@ -8,6 +8,9 @@ open Browser.Support
 
 open Microsoft.FSharp.Reflection
 
+[<Literal>]
+let PathAsterixSeparator = "*"
+
 type ISite = interface end
 type IEndPoint = interface end
 
@@ -20,9 +23,6 @@ type IApplication =
     abstract member render: (ISite option) -> (IEndPoint option) -> unit
     abstract member getSiteFromUrl: string -> ISite option
     abstract member scheduled: (ISite option) -> (IEndPoint option) -> unit
-
-type ISite2 = 
-    abstract member path: string
 
 type ILocalized = 
     abstract member path: string
@@ -58,6 +58,9 @@ let logO isDebug message value =
     logD isDebug "----------------------------------------------------------------------------------"
 
 type ApplicationV2Wrapper(app:IApplicationV2) =
+    let splitByPathAsterixSeparator (p:string) = 
+        let pathAsterixSeparatorForSplit = PathAsterixSeparator.ToCharArray().[0]
+        p.Split(pathAsterixSeparatorForSplit)
     member m.ApplicationV2 = app
     member m.w = m :> IApplication
     interface IApplication with
@@ -70,8 +73,9 @@ type ApplicationV2Wrapper(app:IApplicationV2) =
         member this.getEndPointFromUrl url = 
             let site = this.w.getSiteFromUrl url
 
-            let potentialPages = app.getPages() |> Array.where( fun p -> locationHasPart (p.path.Split('*')).[1] )
-            let potentialScheduledTasks = app.getScheduledTasks() |> Array.where( fun p -> locationHasPart (p.path.Split('*')).[1] )
+            let localPart (p:ILocalized) = (splitByPathAsterixSeparator p.path).[1]
+            let potentialPages = app.getPages() |> Array.where( localPart >> locationHasPart )
+            let potentialScheduledTasks = app.getScheduledTasks() |> Array.where( localPart >> locationHasPart )
             let page = 
                 let pageWithSite = potentialPages |> Array.tryFind( fun p -> p.path.Contains((site.Value).ToString()) )   
                 if pageWithSite.IsNone then
@@ -87,7 +91,10 @@ type ApplicationV2Wrapper(app:IApplicationV2) =
             let s = (if site.IsSome then site.Value else (ApplicationV2Site("") :> ISite)) :?> ApplicationV2Site 
             if endPoint.IsSome then                
                 let ep = endPoint.Value :?> ApplicationV2EndPoint
-                let canRender = s.Site.Equals((ep.Page.path.Split('*')).[0]) || (ep.Page.path.Split('*')).[0].Equals("")
+                let globalPart (p:ILocalized) = (splitByPathAsterixSeparator p.path).[0]
+                let canRender = 
+                    let sitePath = ep.Page |> globalPart
+                    s.Site = sitePath || sitePath = ""
                 if canRender then
                     let page = ( endPoint.Value :?> ApplicationV2EndPoint ).Page
                     page.render()

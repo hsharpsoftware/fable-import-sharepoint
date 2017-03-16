@@ -1,3 +1,6 @@
+### 0.2.4
+* PathAsterixSeparator
+
 ### 0.2.3
 * README started
 
