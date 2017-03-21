@@ -69,7 +69,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
-    <Reference Include="Fable.Core">
+    <Reference Include="fable-hsharp-support-browser">
       <HintPath>..\node_modules\fable-hsharp-support-browser\fable-hsharp-support-browser.dll</HintPath>
     </Reference>
   </ItemGroup>
