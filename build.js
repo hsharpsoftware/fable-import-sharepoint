@@ -9,7 +9,7 @@ var BUILD_DIR = "npm"
 var PKG_JSON = "package.json"
 var README = "README.md"
 var RELEASE_NOTES = "RELEASE_NOTES.md"
-var PROJ_FILE = "src/Fable.Helpers.Sample.fsproj"
+var PROJ_FILE = "src/Fable.Import.SharePoint.fsproj"
 
 // Here we're defining Fable options directly in the build script
 // as a JS object, but it would have the same effect if we put them

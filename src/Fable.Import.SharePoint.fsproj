@@ -50,7 +50,23 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MyLib.fs" />
+      <Reference Include="../node_modules/fable-core/Fable.Core.dll" />
+  </ItemGroup>  
+  <ItemGroup>
+      <Reference Include="../node_modules/fable-hsharp-support-browser/fable-hsharp-support-browser.dll" />
+  </ItemGroup>  
+  <ItemGroup>
+    <Compile Include="Fable.Import.SharePoint.SPClientTemplates.fs" />
+    <Compile Include="Fable.Import.SharePoint.SPNotifications.fs" />
+    <Compile Include="Fable.Import.SharePoint.Global.fs" />
+    <Compile Include="Fable.Import.SharePoint.SPClientForms.fs" />
+    <Compile Include="Fable.Import.SharePoint.SPAnimation.fs" />
+    <Compile Include="Fable.Import.SharePoint.SP.fs" />
+    <Compile Include="Fable.Import.SharePoint.fs" />
+    <Compile Include="SharePoint.Support.fs" />
+    <Compile Include="JsXlsx.Support.fs" />
+    <Compile Include="HSharp.fs" />
+    <Compile Include="Dropzone.Support.fs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <Choose>
