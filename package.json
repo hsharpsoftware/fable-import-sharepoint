@@ -9,8 +9,8 @@
     "type": "git",
     "url": "git+https://github.com/hsharpsoftware/fable-import-sharepoint"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [ "sharepoint" ],
+  "author": "David Podhola",
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/hsharpsoftware/fable-import-sharepoint/issues"
