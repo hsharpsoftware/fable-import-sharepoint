@@ -1,3 +1,6 @@
+### 0.2.5
+* package.json update
+
 ### 0.2.4
 * PathAsterixSeparator
 
