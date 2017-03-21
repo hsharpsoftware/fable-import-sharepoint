@@ -53,7 +53,6 @@
     <Compile Include="Fable.Import.SharePoint.SPAnimation.fs" />
     <Compile Include="Fable.Import.SharePoint.SP.fs" />
     <Compile Include="Fable.Import.SharePoint.fs" />
-    <Compile Include="Browser.Support.fs" />
     <Compile Include="SharePoint.Support.fs" />
     <Compile Include="JsXlsx.Support.fs" />
     <Compile Include="HSharp.fs" />
@@ -70,5 +69,8 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="Fable.Core">
+      <HintPath>..\node_modules\fable-hsharp-support-browser\fable-hsharp-support-browser.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
