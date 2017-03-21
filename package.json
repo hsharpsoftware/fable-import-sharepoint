@@ -1,24 +1,31 @@
 {
-  "name": "fable-helpers-sample",
+  "name": "fable-import-sharepoint",
   "version": "0.0.0",
-  "description": "Sample project to create a library for Fable",
+  "description": "Fable bindings for SharePoint",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fable-compiler/fable-helpers-sample.git"
+    "url": "git+https://github.com/hsharpsoftware/fable-import-sharepoint"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "sharepoint"
+  ],
+  "author": "David Podhola",
+  "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/fable-compiler/fable-helpers-sample/issues"
+    "url": "https://github.com/hsharpsoftware/fable-import-sharepoint/issues"
   },
-  "homepage": "https://github.com/fable-compiler/fable-helpers-sample#readme",
+  "homepage": "https://github.com/hsharpsoftware/fable-import-sharepoint",
   "devDependencies": {
-    "fable-compiler": "^0.7.31",
-    "fable-core": "^0.7.23",
+    "fable-compiler": "^0.7.49",
+    "fable-core": "^0.7.28",
+    "rsvp": "^3.3.3",
+    "xlsx-style": "^0.8.13",
     "fs-extra": "^2.0.0"
+  },
+  "dependencies": {
+    "fable-hsharp-support-browser": "^0.0.1"
   }
 }
