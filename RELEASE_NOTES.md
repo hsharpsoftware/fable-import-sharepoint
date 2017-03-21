@@ -1,3 +1,6 @@
+### 0.4.1
+* maintenance release
+
 ### 0.4.0
 * back to `Browser.Support`
 
