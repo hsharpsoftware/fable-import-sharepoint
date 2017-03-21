@@ -1,3 +1,6 @@
+### 0.4.0
+* back to `Browser.Support`
+
 ### 0.3.2
 * dependencies fix
 
