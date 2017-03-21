@@ -1,3 +1,6 @@
+### 0.3.1
+* dependecies fix
+
 ### 0.3.0
 * maintenance release after restructuring
 
