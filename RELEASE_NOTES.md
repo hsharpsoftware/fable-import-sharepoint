@@ -1,3 +1,6 @@
+### 0.5.0
+* `runOnce` added to tasks
+
 ### 0.4.1
 * maintenance release
 

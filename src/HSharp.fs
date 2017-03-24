@@ -34,6 +34,7 @@ type IPage =
 type IScheduledTask = 
     inherit ILocalized
     abstract member run: unit -> unit
+    abstract member runOnce: unit -> unit
 
 type IApplicationV2 = 
     inherit IApplicationCore
@@ -105,6 +106,7 @@ type ApplicationV2Wrapper(app:IApplicationV2) =
                 Some(upcast ApplicationV2EndPoint(page, task))
         member this.render (site:ISite option) (endPoint:IEndPoint option) =
             endPoint |> runIfMatch (fun ep->ep.Page) (fun page->page.render())
+            endPoint |> runIfMatch (fun ep->ep.ScheduledTask) (fun task->task.runOnce())
         member this.scheduled (site:ISite option) (endPoint:IEndPoint option) = 
             endPoint |> runIfMatch (fun ep->ep.ScheduledTask) (fun task->task.run())
 let startApplication (application:IApplication) =
