@@ -14,47 +14,47 @@ let log (message:string) : unit = jsNative
 [<Emit("console.log($0)")>]
 let logO (value:obj) : unit = jsNative
 
-let onDocumentReady (callback:unit->unit) : unit =
-    document.onreadystatechange <- fun _ -> 
-        if document.readyState = "complete" then
+let onDocumentReady (d:Fable.Import.Browser.Document) (callback:unit->unit) : unit =
+    d.onreadystatechange <- fun _ -> 
+        if d.readyState = "complete" then
             callback ()
         null
 
-let windowParentLocation =
+let getWindowParentLocation(w:Fable.Import.Browser.Window) =
     try 
-        Some(window.parent.location.href)
+        Some(w.parent.location.href)
     with
     | _ -> None
 
-let getUrlWithoutParams() : string =
-    let urlWithoutParams = window.location.href.Replace(window.location.search, "")
+let getUrlNoParams(w:Fable.Import.Browser.Window) : string =
+    let urlWithoutParams = w.location.href.Replace(w.location.search, "")
    
     urlWithoutParams
 
-let getIndexOfUrlPart (part : string) : int =
-    let urlWithoutParams = getUrlWithoutParams().ToLower()
-    let index = urlWithoutParams.IndexOf(part.ToLower())
+let getIndexOfUrlSeg (w:Fable.Import.Browser.Window) (seg : string) : int =
+    let urlWithoutParams = getUrlNoParams(w).ToLower()
+    let index = urlWithoutParams.IndexOf(seg.ToLower())
     index
     
 
-let locationHasPart (part : string) =
-    getIndexOfUrlPart part > -1
+let locationHasSeg (w:Fable.Import.Browser.Window) (seg : string) =
+    getIndexOfUrlSeg w seg > -1
 
-let getCurrentUrl () =
-    window.location.href
+let getCurrUrl (w:Fable.Import.Browser.Window) =
+    w.location.href
 
-let setCurrentUrl (url:string) =
-    window.location.href <- url
+let setCurrUrl (w:Fable.Import.Browser.Window) (url:string) =
+    w.location.href <- url
 
-let parentHasPart (part : string) =
-    let parent = windowParentLocation
+let parentHasSeg (w:Fable.Import.Browser.Window)  (seg : string) =
+    let parent = getWindowParentLocation w
     match parent with
-    | Some(loc) -> loc.IndexOf(part) > -1
+    | Some(loc) -> loc.IndexOf(seg) > -1
     | _ -> false
 
 
-let reloadPage() =
-  window.location.reload(false)
+let reloadWindow(w:Fable.Import.Browser.Window) =
+  w.location.reload(false)
 
 [<Emit("alert($0)")>]
 let alert (x: string) : unit = jsNative
@@ -156,9 +156,9 @@ let readonlyAll el =
     el?find("*")?prop("contentEditable", false) |> ignore
     el?find("*")?prop("disabled", true) |> ignore
 
-let querySelector (query: string) =
+let querySelector (d:Fable.Import.Browser.Document) (query: string) =
     logO query
-    document.querySelector(query)
+    d.querySelector(query)
     
 [<Emit("RegExp($0)")>]
 let RegExp (par:string) = jsNative
@@ -203,26 +203,26 @@ let idP el : int = jsNative
 
 let empty el = el?empty() |> ignore
 
-let pathname =
-    window.location.pathname
+let getPathName (w:Fable.Import.Browser.Window)=
+    w.location.pathname
 
-let hostname =
-    window.location.hostname
+let getHostName (w:Fable.Import.Browser.Window)=
+    w.location.hostname
 
-let host =
-    window.location.host
+let getHost (w:Fable.Import.Browser.Window)=
+    w.location.host
 
-let links =
-    document.getElementsByTagName("a")
+let getLinks (d:Fable.Import.Browser.Document) =
+    d.getElementsByTagName("a")
 
-let getElementById (id: string) =
-    document.getElementById(id)
+let getElementById (d:Fable.Import.Browser.Document)  (id: string) =
+    d.getElementById(id)
 
-let getElementsByClass (className: string) =
-    document.getElementsByClassName(className)
+let getElementsByClass (d:Fable.Import.Browser.Document)  (className: string) =
+    d.getElementsByClassName(className)
 
-let getElementsByName (name: string) =
-    document.getElementsByName(name)    
+let getElementsByName (d:Fable.Import.Browser.Document)  (name: string) =
+    d.getElementsByName(name)    
 
 let getChildrenByClass (className: string) (parent: Element) = 
     parent.getElementsByClassName(className)
@@ -233,19 +233,19 @@ let getHostname (el: Element) =
 let getPathname (el: Element) =
     (el?pathname).ToString()
 
-let createParamLinkPostfix (linkDescription: string) (paramValue: string) (url: string) (paramName: string) (source: bool) =
+let createParamLinkPostfix (d:Fable.Import.Browser.Document)  (linkDescription: string) (paramValue: string) (url: string) (paramName: string) (source: bool) =
   let path = 
       match source with
       | false -> url + "?"+ paramName + "=" + paramValue
       | true -> url + "?"+ paramName + "=" + paramValue + "&Source=" + location.href
       
-  let link = document.createElement("a")
+  let link = d.createElement("a")
   link.setAttribute("href", path)
   link.textContent <- linkDescription
   link
 
-let createLinkElement (linkDescription: string) (url: string) =
-  let link = document.createElement("a")
+let createLinkElement (d:Fable.Import.Browser.Document)  (linkDescription: string) (url: string) =
+  let link = d.createElement("a")
   link.setAttribute("href", url)
   link.textContent <- linkDescription
   link
@@ -253,32 +253,32 @@ let createLinkElement (linkDescription: string) (url: string) =
 let getSelectedText el =
   (el?text()  ).ToString()
 
-let createSimpleLink (linkDescription: string)  (url: string) (source: bool) =
+let createSimpleLink (d:Fable.Import.Browser.Document)  (linkDescription: string)  (url: string) (source: bool) =
   let path = 
       match source with
       | false -> url
       | true -> url + "?Source=" + location.href
       
-  let link = document.createElement("a")
+  let link = d.createElement("a")
   link.setAttribute("href", path)
   link.textContent <- linkDescription
   link
 
-let createLineBreak =
-  document.createElement("br")
+let createLineBreak (d:Fable.Import.Browser.Document)  =
+  d.createElement("br")
 
-let createTextElement (value: string) =
-  document.createTextNode(value)
+let createTextElement (d:Fable.Import.Browser.Document)  (value: string) =
+  d.createTextNode(value)
 
-let createInput (value: string) (t: string) =
-  let input = document.createElement("input")
+let createInput (d:Fable.Import.Browser.Document)  (value: string) (t: string) =
+  let input = d.createElement("input")
   input?``type`` <- t
   input?value <- value
   input
 
 
-let createTable =
-  let t = document.createElement_table()
+let createTable (d:Fable.Import.Browser.Document)  =
+  let t = d.createElement_table()
   t.id <- "boardsTable"
   t.border <- "1"
   t
@@ -299,25 +299,25 @@ let getUrlParamValue (paramName : string) =
 
   result.[1]
 
-let createButton (text: string) =
-    let submit = document.createElement("button")
+let createButton (d:Fable.Import.Browser.Document)  (text: string) =
+    let submit = d.createElement("button")
     submit.textContent <- text
     submit
 
-let createDiv (id: string) = 
-    let div = document.createElement("div")
+let createDiv (d:Fable.Import.Browser.Document)  (id: string) = 
+    let div = d.createElement("div")
     div.id <- id
     div
 
-let addButton (name: string) (parent) (onClick) =
-    let submit = createButton name
+let addButton (d:Fable.Import.Browser.Document)  (name: string) (parent) (onClick) =
+    let submit = createButton d name
     submit.id <- name
     submit?addEventListener("click", onClick) |> ignore
     parent?appendChild(submit) |> ignore
 
-let addHeading (value: string) (parent) = 
-    let h = document.createElement("h3")
-    let t = document.createTextNode(value)
+let addHeading (d:Fable.Import.Browser.Document)  (value: string) (parent) = 
+    let h = d.createElement("h3")
+    let t = d.createTextNode(value)
     h?appendChild(t) |> ignore
     parent?appendChild(h) |> ignore
 
@@ -334,8 +334,8 @@ let getQueryParameterValue (name: string) =
     | 0 -> ""
     | _ -> paramValue.[0]
 
-let confirm (message: string) =
-    window.confirm(message)
+let confirm (w:Fable.Import.Browser.Window) (message: string) =
+    w.confirm(message)
 
 let sliceUrlFrom(start: string) =
     let urlParts = location.href.Split('/')
