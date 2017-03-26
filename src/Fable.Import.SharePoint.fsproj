@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Name>Fable.Helpers.Sample</Name>
@@ -50,11 +50,8 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-      <Reference Include="../node_modules/fable-core/Fable.Core.dll" />
-  </ItemGroup>  
-  <ItemGroup>
-      <Reference Include="../node_modules/fable-hsharp-support-browser/fable-hsharp-support-browser.dll" />
-  </ItemGroup>  
+    <Reference Include="../node_modules/fable-core/Fable.Core.dll" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Include="Fable.Import.SharePoint.SPClientTemplates.fs" />
     <Compile Include="Fable.Import.SharePoint.SPNotifications.fs" />

@@ -23,8 +23,7 @@
     "fable-core": "^0.7.28",
     "rsvp": "^3.3.3",
     "xlsx-style": "^0.8.13",
-    "fs-extra": "^2.0.0",
-    "fable-hsharp-support-browser": "^0.0.1"
+    "fs-extra": "^2.0.0"
   },
   "dependencies": {
   }
