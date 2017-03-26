@@ -58,7 +58,7 @@ let logO isDebug message value =
     if isDebug then logO value
     logD isDebug "----------------------------------------------------------------------------------"
 
-type ApplicationV2Wrapper(app:IApplicationV2) =
+type ApplicationV2Wrapper(window:Fable.Import.Browser.Window,app:IApplicationV2) =
     let splitByPathAsterixSeparator (p:string) = 
         let pathAsterixSeparatorForSplit = PathAsterixSeparator.ToCharArray().[0]
         p.Split(pathAsterixSeparatorForSplit)
@@ -70,20 +70,23 @@ type ApplicationV2Wrapper(app:IApplicationV2) =
         |> Microsoft.FSharp.Core.Option.iter (runOnEp)
 
     member m.ApplicationV2 = app
-    member m.w = m :> IApplication
+    member m.app = m :> IApplication
+    member m.window = window
+    member m.locationHasPart = (locationHasSeg m.window)
+
     interface IApplication with
         member this.isDebug = app.isDebug
         member this.getSiteFromUrl(url: string) = 
             app.getSites()
-            |> Array.tryFind locationHasPart 
+            |> Array.tryFind this.locationHasPart
             |> Microsoft.FSharp.Core.Option.map ( fun p -> ApplicationV2Site(p) :> ISite)
 
         member this.getEndPointFromUrl url = 
-            let site = this.w.getSiteFromUrl url
+            let site = this.app.getSiteFromUrl url
 
             let localPart (p:ILocalized) = (splitByPathAsterixSeparator p.path).[1]
-            let potentialPages = app.getPages() |> Array.where( localPart >> locationHasPart )
-            let potentialScheduledTasks = app.getScheduledTasks() |> Array.where( localPart >> locationHasPart )
+            let potentialPages = app.getPages() |> Array.where( localPart >> this.locationHasPart )
+            let potentialScheduledTasks = app.getScheduledTasks() |> Array.where( localPart >> this.locationHasPart )
 
             let findByPathAndConvert x = 
                 let convert1 arr =
@@ -109,13 +112,14 @@ type ApplicationV2Wrapper(app:IApplicationV2) =
             endPoint |> runIfMatch (fun ep->ep.ScheduledTask) (fun task->task.runOnce())
         member this.scheduled (site:ISite option) (endPoint:IEndPoint option) = 
             endPoint |> runIfMatch (fun ep->ep.ScheduledTask) (fun task->task.run())
-let startApplication (application:IApplication) =
+
+let startApplication (window:Fable.Import.Browser.Window, application:IApplication) =
     let isDebug = application.isDebug
     let logD message =
         if isDebug then log message
     let logDF formatString args = 
         logD (sprintf formatString args)
-    let currentUrl = getCurrentUrl ()
+    let currentUrl = getCurrUrl window
     logDF "Application started @ %A" currentUrl
     let site = application.getSiteFromUrl currentUrl
     logDF "@ Site %A" site
