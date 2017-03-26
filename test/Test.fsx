@@ -29,7 +29,7 @@ type PageWithoutPathApp() =
             |]
 
 let testPageWithoutPath() =
-    HSharp.startApplication( ApplicationV2Wrapper(PageWithoutPathApp()) )
+    HSharp.startApplication( null, ApplicationV2Wrapper(null, PageWithoutPathApp()) )
 
 test()
 testPageWithoutPath()
