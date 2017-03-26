@@ -11,7 +11,7 @@ let test() =
 
 type PageWithoutPath() =
     interface IPage with
-        member m.path = "abcd"
+        member m.path = ""
         member m.render () = ()
 
 type PageWithoutPathApp() =        

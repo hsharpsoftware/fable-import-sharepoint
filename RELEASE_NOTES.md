@@ -1,3 +1,6 @@
+### 0.6.0
+* `locationHasPart` needs to be provided from outside
+
 ### 0.5.0
 * `runOnce` added to tasks
 
