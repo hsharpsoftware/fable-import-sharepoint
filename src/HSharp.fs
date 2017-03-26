@@ -58,7 +58,7 @@ let logO isDebug message value =
     if isDebug then logO value
     logD isDebug "----------------------------------------------------------------------------------"
 
-type ApplicationV2Wrapper(window:Fable.Import.Browser.Window,app:IApplicationV2) =
+type ApplicationV2Wrapper(locationHasPart:string->bool,app:IApplicationV2) =
     let splitByPathAsterixSeparator (p:string) = 
         let pathAsterixSeparatorForSplit = PathAsterixSeparator.ToCharArray().[0]
         p.Split(pathAsterixSeparatorForSplit)
@@ -71,8 +71,7 @@ type ApplicationV2Wrapper(window:Fable.Import.Browser.Window,app:IApplicationV2)
 
     member m.ApplicationV2 = app
     member m.app = m :> IApplication
-    member m.window = window
-    member m.locationHasPart = (locationHasSeg m.window)
+    member m.locationHasPart = locationHasPart
 
     interface IApplication with
         member this.isDebug = app.isDebug
@@ -113,13 +112,12 @@ type ApplicationV2Wrapper(window:Fable.Import.Browser.Window,app:IApplicationV2)
         member this.scheduled (site:ISite option) (endPoint:IEndPoint option) = 
             endPoint |> runIfMatch (fun ep->ep.ScheduledTask) (fun task->task.run())
 
-let startApplication (window:Fable.Import.Browser.Window, application:IApplication) =
+let startApplication (currentUrl:string, application:IApplication) =
     let isDebug = application.isDebug
     let logD message =
         if isDebug then log message
     let logDF formatString args = 
         logD (sprintf formatString args)
-    let currentUrl = getCurrUrl window
     logDF "Application started @ %A" currentUrl
     let site = application.getSiteFromUrl currentUrl
     logDF "@ Site %A" site

@@ -11,7 +11,7 @@ let test() =
 
 type PageWithoutPath() =
     interface IPage with
-        member m.path = null
+        member m.path = "abcd"
         member m.render () = ()
 
 type PageWithoutPathApp() =        
@@ -29,7 +29,8 @@ type PageWithoutPathApp() =
             |]
 
 let testPageWithoutPath() =
-    HSharp.startApplication( null, ApplicationV2Wrapper(null, PageWithoutPathApp()) )
+    let locationHasPart (s:string) = false
+    HSharp.startApplication( "http://localhost", ApplicationV2Wrapper(locationHasPart, PageWithoutPathApp()) )
 
 test()
 testPageWithoutPath()
