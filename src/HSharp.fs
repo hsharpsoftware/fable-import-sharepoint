@@ -112,7 +112,7 @@ type ApplicationV2Wrapper(locationHasPart:string->bool,app:IApplicationV2) =
         member this.scheduled (site:ISite option) (endPoint:IEndPoint option) = 
             endPoint |> runIfMatch (fun ep->ep.ScheduledTask) (fun task->task.run())
 
-let startApplication (currentUrl:string, application:IApplication) =
+let startApplication (currentUrl:string, application:IApplication, timer ) =
     let isDebug = application.isDebug
     let logD message =
         if isDebug then log message
@@ -128,9 +128,9 @@ let startApplication (currentUrl:string, application:IApplication) =
 
     let rec scheduler () = 
         application.scheduled site endpoint
-        setTimeout scheduler 1000
+        timer scheduler 1000
 
     logD "Scheduling the task for the very first time"
-    setTimeout scheduler 1000
+    timer scheduler 1000
 
     logD "start done"

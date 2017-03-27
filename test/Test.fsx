@@ -4,6 +4,8 @@
 open Fable.Core.Testing
 open HSharp
 
+let doNothingTimer (callback:unit->unit) (miliseconds) = ()
+
 let test() =
     let actual = 1
     let expected = 1
@@ -30,7 +32,7 @@ type PageWithoutPathApp() =
 
 let testPageWithoutPath() =
     let locationHasPart (s:string) = false
-    HSharp.startApplication( "http://localhost", ApplicationV2Wrapper(locationHasPart, PageWithoutPathApp()) )
+    HSharp.startApplication( "http://localhost", ApplicationV2Wrapper(locationHasPart, PageWithoutPathApp()), doNothingTimer )
 
 test()
 testPageWithoutPath()
