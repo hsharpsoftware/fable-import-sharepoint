@@ -1,3 +1,5 @@
+### 0.9.0
+* back to `Browser.Support`
 ### 0.8.0
 * using `fable-hsharp-support-browser`
 ### 0.7.0
