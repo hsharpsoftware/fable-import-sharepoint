@@ -1,3 +1,5 @@
+### 0.8.0
+* using `fable-hsharp-support-browser`
 ### 0.7.0
 * non Sharepoint `HSharp` functions moved to separate `hsharp` package
 ### 0.6.1
