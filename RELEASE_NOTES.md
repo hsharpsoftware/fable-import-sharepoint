@@ -1,3 +1,5 @@
+### 0.6.1
+* `startWeb2Application`
 ### 0.6.0
 * `locationHasPart` needs to be provided from outside
 

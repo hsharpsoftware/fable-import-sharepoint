@@ -369,3 +369,7 @@ let nearestRow el =
 
 let closest sel el = 
     el?closest(sel)
+
+[<Emit("window")>]
+let _window : Window = jsNative
+    

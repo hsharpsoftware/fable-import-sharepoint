@@ -134,3 +134,8 @@ let startApplication (currentUrl:string, application:IApplication, timer ) =
     timer scheduler 1000
 
     logD "start done"
+
+let startWeb2Application (application:IApplicationV2) = 
+    let currentUrl = _window.location.href
+    let locationHasPart = locationHasSeg _window
+    startApplication( currentUrl, ApplicationV2Wrapper(locationHasPart,application), setTimeout )
