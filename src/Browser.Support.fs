@@ -1,6 +1,5 @@
 ﻿module Browser.Support
 
-open Fable.Import.SharePoint.SP
 open Fable.Core
 open Fable.Import.Browser
 open Fable.Core.JsInterop

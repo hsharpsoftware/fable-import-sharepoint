@@ -56,6 +56,7 @@
     <Reference Include="../node_modules/fable-core/Fable.Core.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Browser.Support.fs" />
     <Compile Include="Fable.Import.SharePoint.SPClientTemplates.fs" />
     <Compile Include="Fable.Import.SharePoint.SPNotifications.fs" />
     <Compile Include="Fable.Import.SharePoint.Global.fs" />
