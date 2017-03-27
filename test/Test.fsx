@@ -10,6 +10,11 @@ let test() =
     let expected = 1
     Assert.AreEqual(expected, actual)
 
+(* 
+let testLogTrace () =
+    Browser.Support.log_trace( [| "Hello" |] )
+*)
 
 test()
+testLogTrace()
 printfn "Test finished correctly"
