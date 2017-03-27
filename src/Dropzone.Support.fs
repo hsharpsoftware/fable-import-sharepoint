@@ -4,7 +4,7 @@ open Fable.Core
 open Fable.Import.Browser
 open Fable.Core.JsInterop
 open Browser.Support
-open HSharp
+
 // http://www.fssnip.net/9l
 open Microsoft.FSharp.Reflection
 

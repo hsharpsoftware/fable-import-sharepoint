@@ -63,7 +63,6 @@
     <Compile Include="Browser.Support.fs" />
     <Compile Include="SharePoint.Support.fs" />
     <Compile Include="JsXlsx.Support.fs" />
-    <Compile Include="HSharp.fs" />
     <Compile Include="Dropzone.Support.fs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
