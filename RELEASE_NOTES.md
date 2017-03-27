@@ -1,3 +1,5 @@
+### 0.9.1
+* maintenance release
 ### 0.9.0
 * back to `Browser.Support`
 ### 0.8.0

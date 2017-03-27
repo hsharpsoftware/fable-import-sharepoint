@@ -16,5 +16,5 @@ let testLogTrace () =
 *)
 
 test()
-testLogTrace()
+//testLogTrace()
 printfn "Test finished correctly"
