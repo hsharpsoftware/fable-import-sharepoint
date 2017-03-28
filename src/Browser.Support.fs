@@ -7,22 +7,11 @@ open Fable.Core.JsInterop
 // http://www.fssnip.net/9l
 open Microsoft.FSharp.Reflection
 
-[<Emit("console.log($0)")>]
+[<Emit("log4javascript.getLogger().debug($0)")>]
 let log (message:string) : unit = jsNative
 
-[<Emit("console.log($0)")>]
+[<Emit("log4javascript.getLogger().debug($0)")>]
 let logO (value:obj) : unit = jsNative
-
-(* 
-[<Emit("log4javascript.getDefaultLogger.trace($0...)")>]
-let log_trace( [<System.ParamArray>] message:obj[] ) = jsNative
-
-log_debug(message[, message2, ... ][, exception])
-log_info(message[, message2, ... ][, exception])
-log_warn(message[, message2, ... ][, exception])
-log_error(message[, message2, ... ][, exception])
-log_fatal(message[, message2, ... ][, exception])
-*)
 
 let onDocumentReady (d:Fable.Import.Browser.Document) (callback:unit->unit) : unit =
     d.onreadystatechange <- fun _ -> 
