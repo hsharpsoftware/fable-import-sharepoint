@@ -1,3 +1,5 @@
+### 0.10.0
+* `Browser.Support` removed
 ### 0.9.4
 * `logO2` to log message + value
 ### 0.9.3
