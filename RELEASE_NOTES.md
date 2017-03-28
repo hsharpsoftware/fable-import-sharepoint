@@ -1,3 +1,5 @@
+### 0.10.1
+* `JsXlsx.Support` removed
 ### 0.10.0
 * `Browser.Support` removed
 ### 0.9.4
