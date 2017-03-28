@@ -24,8 +24,7 @@
     "rsvp": "^3.3.3",
     "xlsx-style": "^0.8.13",
     "fs-extra": "^2.0.0",
-    "log4javascript": "^1.4.15",
-    "fable-hsharp-support-browser":"^0.0.3"
+    "log4javascript": "^1.4.15"
   },
   "dependencies": {
   }
