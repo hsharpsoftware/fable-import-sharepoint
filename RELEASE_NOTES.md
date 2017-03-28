@@ -1,3 +1,5 @@
+### 0.11.0
+* Sharepoint only
 ### 0.10.1
 * `JsXlsx.Support` removed
 ### 0.10.0
