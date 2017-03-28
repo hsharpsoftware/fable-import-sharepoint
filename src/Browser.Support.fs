@@ -13,6 +13,9 @@ let log (message:string) : unit = jsNative
 [<Emit("log4javascript.getLogger().debug($0)")>]
 let logO (value:obj) : unit = jsNative
 
+[<Emit("log4javascript.getLogger().debug($0, $1)")>]
+let logO2 (message:string) (value:obj) : unit = jsNative
+
 let onDocumentReady (d:Fable.Import.Browser.Document) (callback:unit->unit) : unit =
     d.onreadystatechange <- fun _ -> 
         if d.readyState = "complete" then
