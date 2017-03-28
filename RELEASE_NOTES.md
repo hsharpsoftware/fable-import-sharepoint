@@ -1,3 +1,5 @@
+### 0.9.4
+* `logO2` to log message + value
 ### 0.9.3
 * maintenance release
 ### 0.9.2
