@@ -8,12 +8,21 @@ open Browser.Support
 
 open Microsoft.FSharp.Reflection
 
+[<Emit("log4javascript.getLogger().debug($0)")>]
+let log (message:string) : unit = jsNative
+
+[<Emit("log4javascript.getLogger().debug($0)")>]
+let logO (value:obj) : unit = jsNative
+
+[<Emit("log4javascript.getLogger().debug($0, $1)")>]
+let logO2 (message:string) (value:obj) : unit = jsNative
+
 let onQueryFailed sender (args:ClientRequestFailedEventArgs) =
     let message = sprintf "Request failed. %s \n%s\n " (args.get_message()) (args.get_stackTrace())
-    //failwith message
     log message
     logO args
     log "------------------------------------------------------------------------"
+    failwith message
 
 let nothingOnQueryFailed sender (args:ClientRequestFailedEventArgs) =
     ()
@@ -388,7 +397,7 @@ let setFolder() = jsNative
 
 let createFolders (context: ClientContext) (library: List) (folderNames: string []) =
   async {
-    Browser.Support.logO ("createFolder() started")
+    log "createFolder() started"
 
     folderNames 
     |> Array.iter(fun folderName ->
@@ -435,7 +444,7 @@ let getAllListItems (context: ClientContext) (web: Web) (listName: string) (incl
         context.load(items)
         do! executeQueryAsync context
 
-        Browser.Support.log(sprintf "listItems.get_count %A" (items.get_count()) )
+        log(sprintf "listItems.get_count %A" (items.get_count()) )
         return items
   }
 
@@ -474,6 +483,13 @@ let getVal (columnName:string) (item:ListItem)  =
 
 [<Emit("jQuery('<div>').html($0).text()")>]
 let convertSimpleHtmlToText(text:string) = jsNative : string
+
+let toStringSafe v =
+    if v = null then
+        ""
+    else
+        let vs = v.ToString()
+        if vs="null" then "" else vs
 
 let getValS (columnName:string) (item:ListItem)  = 
   getVal columnName item |> toStringSafe |> convertSimpleHtmlToText
