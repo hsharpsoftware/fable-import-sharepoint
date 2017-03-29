@@ -221,15 +221,6 @@ let getListIdAsync title (listCollection:ListCollection) (clientContext : Client
 
 let fixColumnName (name:string) = name.Replace(" ", "_x0020_")
 
-type SPCascadeDropDownSetup = {
-    relationshipList : string
-    relationshipListParentColumn : string
-    relationshipListChildColumn : string
-    parentColumn : string
-    childColumn : string
-    debug : bool
- }
-
 let uploadMasterPage (content) (clientContext:ClientContext) =
     let web = clientContext.get_web()
     let folder = web.getFolderByServerRelativeUrl("")
@@ -304,15 +295,6 @@ let disableDragAndDrop () =
 
 [<Emit("ExecuteOrDelayUntilScriptLoaded($0,$1)")>]
 let ExecuteOrDelayUntilScriptLoaded (callback:unit->unit) (script:string) = jsNative
-
-let nearestFormRowParent el = 
-    try 
-        el?parents("td .ms-formbody, td .ms-formlabel")?parent()
-    with
-    | ex -> 
-        log (sprintf "nearestFormRowParent FAILED for %A [%A]" el ex )
-        null
-
 let nearestTd el = 
     el?parents("td")
 

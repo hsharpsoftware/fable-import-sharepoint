@@ -1,3 +1,5 @@
+### 0.11.1
+* maintenance release
 ### 0.11.0
 * Sharepoint only
 ### 0.10.1
