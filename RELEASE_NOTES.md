@@ -1,3 +1,5 @@
+### 0.12.0
+* `executeQuery`
 ### 0.11.1
 * maintenance release
 ### 0.11.0
