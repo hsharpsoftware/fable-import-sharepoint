@@ -150,6 +150,16 @@ let executeQueryAsync (clientContext:ClientContext) =
 let executeSilentQueryAsync (clientContext:ClientContext) =
     executeQueryAsyncWithFallback clientContext nothingOnQueryFailed
 
+[<Emit("jQuery.Deferred()")>]
+let deferred() = jsNative
+
+let executeQuery (clientContext:ClientContext) =
+    let deferred = deferred()
+    clientContext.executeQueryAsync(
+        System.Func<_,_,_>( fun _ arguments -> deferred?resolve(arguments) |> ignore ),
+        System.Func<_,_,_>( fun _ arguments -> deferred?reject(arguments) |> ignore )
+    )            
+    deferred?promise()
 
 let createCustomList title url (clientContext : ClientContext) =
     async {
