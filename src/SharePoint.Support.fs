@@ -153,13 +153,13 @@ let executeSilentQueryAsync (clientContext:ClientContext) =
 [<Emit("jQuery.Deferred()")>]
 let deferred() = jsNative
 
-let executeQuery (clientContext:ClientContext) =
+let executeQuery (clientContext:ClientContext) : Fable.Import.JS.Promise<unit> =
     let deferred = deferred()
     clientContext.executeQueryAsync(
         System.Func<_,_,_>( fun _ arguments -> deferred?resolve(arguments) |> ignore ),
         System.Func<_,_,_>( fun _ arguments -> deferred?reject(arguments) |> ignore )
     )            
-    deferred?promise()
+    downcast deferred?promise()
 
 let createCustomList title url (clientContext : ClientContext) =
     async {
