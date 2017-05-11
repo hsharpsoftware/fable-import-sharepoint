@@ -1,3 +1,5 @@
+### 0.13.1
+* unnecessary `console.log`s removed
 ### 0.13.0
 * going to `promise`
 ### 0.12.0

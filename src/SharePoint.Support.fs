@@ -510,8 +510,8 @@ let getListItemsByCaml (web:Web) (context:ClientContext) (listName: string) (fie
         context.load(itemList)
         let execQuery () = context |> executeQuery
         do! execQuery () 
-        console.log(listName)
-        console.log(itemList)
+        //console.log(listName)
+        //console.log(itemList)
         //logO listName itemList
 
         let caml = new CamlQuery()
@@ -521,14 +521,14 @@ let getListItemsByCaml (web:Web) (context:ClientContext) (listName: string) (fie
         let listItems = itemList.getItems(caml)
         context.load(listItems, (sprintf "Include(Id,%s)" fieldNames ) )
         do! execQuery () 
-        console.log("listItems")
-        console.log(listItems)
+        //console.log("listItems")
+        //console.log(listItems)
         //logO "listItems" listItems
         //logD (sprintf "listItems.get_count %A" (listItems.get_count()) )
         
         let res = listItems |> convert<ListItem> |> Array.map( mapper )
-        console.log("res")
-        console.log(res)
+        //console.log("res")
+        //console.log(res)
         //logO "res" res
         return res
     }
