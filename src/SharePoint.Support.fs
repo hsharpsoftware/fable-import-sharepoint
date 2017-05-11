@@ -244,15 +244,15 @@ let uploadMasterPage (content) (clientContext:ClientContext) =
     
 let convert<'T> (source:Fable.Import.SharePoint.IEnumerable<'T>) : array<'T> =
     let enumerator = source.getEnumerator()
-    logO2 "enumerator" enumerator
+    //logO2 "enumerator" enumerator
     let mResult = 
         seq {
             while enumerator.moveNext() do
                 let result = enumerator.get_current()
-                logO2 "result" result
+                //logO2 "result" result
                 yield result
         } |> Seq.toArray
-    logO2 "mResult" mResult
+    //logO2 "mResult" mResult
     mResult
 
 [<Emit("new SP.WorkflowServices.WorkflowServicesManager($0, $1)")>]
@@ -505,6 +505,7 @@ let getValS (columnName:string) (item:ListItem)  =
   getVal columnName item |> toStringSafe |> convertSimpleHtmlToText
 
 let getListItemsByCaml (web:Web) (context:ClientContext) (listName: string) (fieldNames: string) (camlQuery: string) (mapper)  =
+    console.log("getListItemsByCaml started for " + listName)
     promise {
         let itemList = web.get_lists().getByTitle(listName)
         context.load(itemList)
@@ -527,7 +528,7 @@ let getListItemsByCaml (web:Web) (context:ClientContext) (listName: string) (fie
         //logD (sprintf "listItems.get_count %A" (listItems.get_count()) )
         
         let res = listItems |> convert<ListItem> |> Array.map( mapper )
-        //console.log("res")
+        console.log("getListItemsByCaml succeeded for " + listName)
         //console.log(res)
         //logO "res" res
         return res

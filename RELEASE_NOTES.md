@@ -1,3 +1,7 @@
+### 0.13.3
+* better logging
+### 0.13.2
+* one `console.log`s returned back for `getListItemsByCaml`
 ### 0.13.1
 * unnecessary `console.log`s removed
 ### 0.13.0
