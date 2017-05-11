@@ -28,5 +28,6 @@
     "fable-hsharp-support-browser":"^0.0.3"
   },
   "dependencies": {
-  }
+      "fable-powerpack": "0.0.19"
+}
 }

@@ -3,6 +3,7 @@ open Fable.Import.SharePoint.SP
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import.Browser
+open Fable.PowerPack
 
 open Browser.Support
 
@@ -222,10 +223,11 @@ let private createCustomListInt title url (createContentType:bool) continue1 (li
     )
 
 let getListIdAsync title (listCollection:ListCollection) (clientContext : ClientContext) = 
-    async {
+    promise {
         let list1 = listCollection.getByTitle(title)
         clientContext.load(list1, "Id")
-        do! executeQueryAsync clientContext
+        let execQuery () = clientContext |> executeQuery
+        do! execQuery  ()
         return list1
     }
 
@@ -242,26 +244,33 @@ let uploadMasterPage (content) (clientContext:ClientContext) =
     
 let convert<'T> (source:Fable.Import.SharePoint.IEnumerable<'T>) : array<'T> =
     let enumerator = source.getEnumerator()
-    seq {
-        while enumerator.moveNext() do
-            yield enumerator.get_current()
-    } |> Seq.toArray
+    logO2 "enumerator" enumerator
+    let mResult = 
+        seq {
+            while enumerator.moveNext() do
+                let result = enumerator.get_current()
+                logO2 "result" result
+                yield result
+        } |> Seq.toArray
+    logO2 "mResult" mResult
+    mResult
 
 [<Emit("new SP.WorkflowServices.WorkflowServicesManager($0, $1)")>]
 let WorkflowServicesManager (context:ClientContext, web:Web) = jsNative
 
 let getSubscriptionsByList (context:ClientContext) (web:Web) (listId) =   
-    async { 
+    promise { 
         let sMgr = WorkflowServicesManager (context, web)
         let sservice = sMgr?getWorkflowSubscriptionService()
         let ssubs = sservice?enumerateSubscriptionsByList(listId) :?> ClientObject
         context.load(ssubs)
-        do! executeQueryAsync context
+        let execQuery () = context |> executeQuery
+        do! execQuery  ()
         let e = ssubs?getEnumerator()
         while (e?moveNext() :?> bool) do
            let c =  e?get_current()
            log("Name :" + c?get_name().ToString() + " sID: " + c?get_id().ToString())
-    } |> Async.StartImmediate
+    } |> Promise.iter( ignore )
 
 [<Emit("SP.WorkflowServices")>]
 let WorkflowServices () = jsNative
@@ -272,26 +281,29 @@ let getSubscriptionById (context:ClientContext) (web:Web) (subscriptionId:string
     //log "Loading subscription"
     context.load(subscription)
     subscription
+    
 let startWorkFlow (context:ClientContext) (web:Web) (subscription) (itemId:int) =
-    async {
+    promise {
         let wfServiceManager = WorkflowServices()?WorkflowServicesManager?newObject(context, web)
         let inputParameters = new System.Collections.Generic.Dictionary<string, obj>()
         //log "Successfully starting workflow."
         wfServiceManager?getWorkflowInstanceService()?startWorkflowOnListItem(subscription, itemId, inputParameters) |> ignore
-        do! executeQueryAsync context
+        let execQuery () = context |> executeQuery
+        do! execQuery  ()
         //log "workflow started successfully"
     }
-    |> Async.StartImmediate
+    |> Promise.iter( ignore )
 
 let startSiteWorkFlow (context:ClientContext) (web:Web) (subscription) (inputParameters) =
-    async {
+    promise {
         let wfServiceManager = WorkflowServices()?WorkflowServicesManager?newObject(context, web)
         //log "Successfully starting workflow."
         wfServiceManager?getWorkflowInstanceService()?startWorkflow(subscription, inputParameters) |> ignore
-        do! executeQueryAsync context
+        let execQuery () = context |> executeQuery
+        do! execQuery  ()
         //log "workflow started successfully"
     }
-    |> Async.StartImmediate
+    |> Promise.iter( ignore )
 
 [<Emit("SPDragDropManager")>]
 let SPDragDropManager() = jsNative
@@ -325,13 +337,14 @@ let commonModalDialogClose(dialogResult, returnValue) = jsNative
 let rlfiShowMore () = jsNative
 
 let isCurrentUserMemberOfGroup (clientContext:ClientContext) (groupName:string) =
-    async {
+    promise {
         let web = clientContext.get_web()
         let currentUser = web.get_currentUser()
         clientContext.load(currentUser)
         let userGroups = currentUser.get_groups()
         clientContext.load(userGroups)
-        do! executeQueryAsync clientContext
+        let execQuery () = clientContext |> executeQuery
+        do! execQuery ()
 
         return userGroups |> convert<Group> |> Array.exists( fun p -> p.get_title() = groupName )
     }
@@ -340,26 +353,28 @@ let isCurrentUserMemberOfGroup (clientContext:ClientContext) (groupName:string) 
 let getSelectedItems () = jsNative
 
 let getCurrentUserAsync (clientContext:ClientContext) =
-    async {
+    promise {
         let web = clientContext.get_web()
         let currentUser = web.get_currentUser()
         clientContext.load(currentUser)
         let userGroups = currentUser.get_groups()
         clientContext.load(userGroups)
-        do! executeQueryAsync clientContext
+        let execQuery () = clientContext |> executeQuery
+        do! execQuery () 
         return currentUser
     }
 
 let getUserByIdAsync (context:ClientContext) (web: Web) (id: float) =
-   async {
+   promise {
       let user = web.get_siteUsers().getById(id)
+      let execQuery () = context |> executeQuery
       context.load(user)
-      context.executeQueryAsync()
+      do! execQuery ()
       return user
    } 
 
 let approveOrRejectTask (clientContext:ClientContext) (taskId: float) (listName: string) (approve: bool) =
-  async {
+  promise {
       let list = clientContext.get_web().get_lists().getByTitle(listName)
       let task = list.getItemById(taskId)
       let status = 
@@ -372,7 +387,8 @@ let approveOrRejectTask (clientContext:ClientContext) (taskId: float) (listName:
       task.set_item("Status",status)
       task.set_item("WorkflowOutcome",status)
       task.update()
-      do! executeQueryAsync clientContext
+      let execQuery () = clientContext |> executeQuery
+      do! execQuery ()
   }
 
 [<Emit("new SP.ClientContext($0)")>]
@@ -388,8 +404,9 @@ let getLookupFieldValue() = jsNative : FieldLookupValue
 let setFolder() = jsNative 
 
 let createFolders (context: ClientContext) (library: List) (folderNames: string []) =
-  async {
+  promise {
     log "createFolder() started"
+    let execQuery () = context |> executeQuery
 
     folderNames 
     |> Array.iter(fun folderName ->
@@ -404,7 +421,7 @@ let createFolders (context: ClientContext) (library: List) (folderNames: string 
             | ex -> log (sprintf "Creation of subfolder %s failed with %A" folderName ex )
     )
 
-    do! executeQueryAsync context
+    do! execQuery()
   }
 
 [<Emit("getCurrentCtx()")>]
@@ -414,7 +431,7 @@ let getCurrentCtx() = jsNative : Fable.Import.SharePoint.ContextInfo
 let getSelectedList() = jsNative 
 
 let updateColumnValue (context:ClientContext) (web: Web) (listName: string) (itemId: float) (columnName: string) (columnValue: obj) =
-  async {
+  promise {
       let item = web.get_lists().getByTitle(listName).getItemById(itemId)
       item.set_item(columnName, columnValue)
       item.update()
@@ -422,19 +439,20 @@ let updateColumnValue (context:ClientContext) (web: Web) (listName: string) (ite
   }
 
 let getAllListItems (context: ClientContext) (web: Web) (listName: string) (includePart: string) =
-  async {
+  promise {
         let list = web.get_lists().getByTitle(listName)
+        let execQuery () = context |> executeQuery
         
         match includePart.Equals("") with 
         | true -> context.load(list)
         | false -> context.load(list, includePart)
-        do! executeQueryAsync context
+        do! execQuery ()
 
         let query = CamlQuery.createAllItemsQuery()
 
         let items = list.getItems(query)
         context.load(items)
-        do! executeQueryAsync context
+        do! execQuery ()
 
         log(sprintf "listItems.get_count %A" (items.get_count()) )
         return items
@@ -487,10 +505,13 @@ let getValS (columnName:string) (item:ListItem)  =
   getVal columnName item |> toStringSafe |> convertSimpleHtmlToText
 
 let getListItemsByCaml (web:Web) (context:ClientContext) (listName: string) (fieldNames: string) (camlQuery: string) (mapper)  =
-    async {
+    promise {
         let itemList = web.get_lists().getByTitle(listName)
         context.load(itemList)
-        do! executeQueryAsync context
+        let execQuery () = context |> executeQuery
+        do! execQuery () 
+        console.log(listName)
+        console.log(itemList)
         //logO listName itemList
 
         let caml = new CamlQuery()
@@ -499,11 +520,15 @@ let getListItemsByCaml (web:Web) (context:ClientContext) (listName: string) (fie
 
         let listItems = itemList.getItems(caml)
         context.load(listItems, (sprintf "Include(Id,%s)" fieldNames ) )
-        do! executeQueryAsync context
+        do! execQuery () 
+        console.log("listItems")
+        console.log(listItems)
         //logO "listItems" listItems
         //logD (sprintf "listItems.get_count %A" (listItems.get_count()) )
         
         let res = listItems |> convert<ListItem> |> Array.map( mapper )
+        console.log("res")
+        console.log(res)
         //logO "res" res
         return res
     }

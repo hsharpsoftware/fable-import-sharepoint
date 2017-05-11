@@ -51,6 +51,9 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="Fable.PowerPack">
+      <HintPath>..\node_modules\fable-powerpack\Fable.PowerPack.dll</HintPath>
+    </Reference>	
   </ItemGroup>
   <ItemGroup>
     <Reference Include="../node_modules/fable-core/Fable.Core.dll" />

@@ -1,3 +1,5 @@
+### 0.13.0
+* going to `promise`
 ### 0.12.0
 * `executeQuery`
 ### 0.11.1
