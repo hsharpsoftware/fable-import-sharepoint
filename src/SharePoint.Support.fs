@@ -126,31 +126,6 @@ type ListDefinition = {
     Fields : FieldDefinition array
 }
 
-let executeQueryAsyncWithFallback (clientContext:ClientContext) (fallback) =
-    Async.FromContinuations( fun( cont, econt, ccont ) ->
-        clientContext.executeQueryAsync(
-            System.Func<_,_,_>(fun _ _ -> cont() ),
-            System.Func<_,_,_>(fallback)
-        )        
-    )
-
-let executeQueryAsyncWithSuccessAndFallback (clientContext:ClientContext) (success) (fallback) =
-  Async.FromContinuations( fun( cont, econt, ccont ) ->
-      clientContext.executeQueryAsync(
-          System.Func<_,_,_>(success),
-          System.Func<_,_,_>(fallback)
-      )        
-  )
-
-let executeQueryAsyncWithSuccessCallback (clientContext:ClientContext) (onSuccess) =
-    executeQueryAsyncWithSuccessAndFallback clientContext onSuccess onQueryFailed
-
-let executeQueryAsync (clientContext:ClientContext) =
-    executeQueryAsyncWithFallback clientContext onQueryFailed
-
-let executeSilentQueryAsync (clientContext:ClientContext) =
-    executeQueryAsyncWithFallback clientContext nothingOnQueryFailed
-
 [<Emit("jQuery.Deferred()")>]
 let deferred() = jsNative
 
@@ -163,14 +138,15 @@ let executeQuery (clientContext:ClientContext) : Fable.Import.JS.Promise<unit> =
     downcast deferred?promise()
 
 let createCustomList title url (clientContext : ClientContext) =
-    async {
+    promise {
         let web = clientContext.get_web()
         let listCollection = web.get_lists()
         clientContext.load(listCollection)
         let list1 = listCollection.getByTitle(title)
         clientContext.load(list1)
+        let execQuery () = clientContext |> executeQuery
         let doCreateList () = 
-                async {
+                promise {
                     let listCreationInfo = ListCreationInformation()
                     listCreationInfo.set_title(title)
                     listCreationInfo.set_url("Lists/"+url)
@@ -178,10 +154,11 @@ let createCustomList title url (clientContext : ClientContext) =
                     let list1 = web.get_lists().add(listCreationInfo)
 
                     clientContext.load(list1);
-                    do! executeQueryAsync clientContext
-                } |> Async.StartImmediate
-        do! executeQueryAsyncWithFallback clientContext  (  fun _ _ -> doCreateList () )                
-    } |> Async.StartImmediate
+                    do! execQuery ()
+                } 
+        do! execQuery ()
+        do! doCreateList ()
+    } |> Promise.iter(ignore)
 
 let private createCustomListInt title url (createContentType:bool) continue1 (listCollection:ListCollection) (web:Web) (clientContext : ClientContext) =
     let list1 = listCollection.getByTitle(title)

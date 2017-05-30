@@ -1,3 +1,5 @@
+### 0.20.0
+* removing ExecuteQueryAsync, use executeQuery instead
 ### 0.13.3
 * better logging
 ### 0.13.2
