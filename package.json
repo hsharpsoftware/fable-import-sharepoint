@@ -24,8 +24,10 @@
     "rsvp": "^3.3.3",
     "xlsx-style": "^0.8.13",
     "fs-extra": "^2.0.0",
-    "fable-hsharp-support-browser": "^0.0.1"
+    "log4javascript": "^1.4.15",
+    "fable-hsharp-support-browser":"^0.0.3"
   },
   "dependencies": {
-  }
+      "fable-powerpack": "0.0.19"
+}
 }

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Name>Fable.Helpers.Sample</Name>
@@ -13,7 +13,7 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile />
     <AutoGenerateBindingRedirects />
-    <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
+    <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
     <DocumentationFile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -41,6 +41,9 @@
     <OtherFlags />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="fable-hsharp-support-browser">
+      <HintPath>..\node_modules\fable-hsharp-support-browser\fable-hsharp-support-browser.dll</HintPath>
+    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>
@@ -48,13 +51,13 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="Fable.PowerPack">
+      <HintPath>..\node_modules\fable-powerpack\Fable.PowerPack.dll</HintPath>
+    </Reference>	
   </ItemGroup>
   <ItemGroup>
-      <Reference Include="../node_modules/fable-core/Fable.Core.dll" />
-  </ItemGroup>  
-  <ItemGroup>
-      <Reference Include="../node_modules/fable-hsharp-support-browser/fable-hsharp-support-browser.dll" />
-  </ItemGroup>  
+    <Reference Include="../node_modules/fable-core/Fable.Core.dll" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Include="Fable.Import.SharePoint.SPClientTemplates.fs" />
     <Compile Include="Fable.Import.SharePoint.SPNotifications.fs" />
@@ -63,11 +66,7 @@
     <Compile Include="Fable.Import.SharePoint.SPAnimation.fs" />
     <Compile Include="Fable.Import.SharePoint.SP.fs" />
     <Compile Include="Fable.Import.SharePoint.fs" />
-    <Compile Include="Browser.Support.fs" />
     <Compile Include="SharePoint.Support.fs" />
-    <Compile Include="JsXlsx.Support.fs" />
-    <Compile Include="HSharp.fs" />
-    <Compile Include="Dropzone.Support.fs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <Choose>

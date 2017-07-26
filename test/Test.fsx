@@ -2,12 +2,19 @@
 #r "../npm/Fable.Import.SharePoint.dll"
 
 open Fable.Core.Testing
-open HSharp
+
+let doNothingTimer (callback:unit->unit) (miliseconds) = ()
 
 let test() =
     let actual = 1
     let expected = 1
     Assert.AreEqual(expected, actual)
 
+(* 
+let testLogTrace () =
+    Browser.Support.log_trace( [| "Hello" |] )
+*)
+
 test()
+//testLogTrace()
 printfn "Test finished correctly"

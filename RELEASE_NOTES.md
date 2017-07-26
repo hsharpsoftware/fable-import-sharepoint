@@ -1,3 +1,42 @@
+### 0.20.0
+* removing ExecuteQueryAsync, use executeQuery instead
+### 0.13.3
+* better logging
+### 0.13.2
+* one `console.log`s returned back for `getListItemsByCaml`
+### 0.13.1
+* unnecessary `console.log`s removed
+### 0.13.0
+* going to `promise`
+### 0.12.0
+* `executeQuery`
+### 0.11.1
+* maintenance release
+### 0.11.0
+* Sharepoint only
+### 0.10.1
+* `JsXlsx.Support` removed
+### 0.10.0
+* `Browser.Support` removed
+### 0.9.4
+* `logO2` to log message + value
+### 0.9.3
+* maintenance release
+### 0.9.2
+* back to `Browser.Support`
+### 0.9.1
+* maintenance release
+### 0.9.0
+* back to `Browser.Support`
+### 0.8.0
+* using `fable-hsharp-support-browser`
+### 0.7.0
+* non Sharepoint `HSharp` functions moved to separate `hsharp` package
+### 0.6.1
+* `startWeb2Application`
+### 0.6.0
+* `locationHasPart` needs to be provided from outside
+
 ### 0.5.0
 * `runOnce` added to tasks
 
