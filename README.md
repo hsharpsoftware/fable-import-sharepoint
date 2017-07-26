@@ -3,7 +3,7 @@
 Simple library that can be used to create client-only SharePoint application in [F#](http://fsharp.org/).
 
 ## Complete application
-One of the easiest way to crate SharePoint application is to create the lists and then [create custom forms](https://social.technet.microsoft.com/wiki/contents/articles/23955.sharepoint-2013-building-custom-forms.aspx).
+One of the easiest way to create SharePoint application is to create the lists and then [create custom forms](https://social.technet.microsoft.com/wiki/contents/articles/23955.sharepoint-2013-building-custom-forms.aspx).
 You can then modify the form HTML to comply with your requirements.
 
 These days users are used to web applications that contain client functionality like validations, autocomplete etc. written in JavaScript.
