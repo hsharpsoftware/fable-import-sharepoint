@@ -289,7 +289,7 @@ let getWorkflowInstances (context:ClientContext) (web:Web)  (subscription) =
         let instanceCollection = wfServiceManager?getWorkflowInstanceService()?Enumerate(subscription) :?> ClientObject
         context.load( instanceCollection )
         do! execQuery  ()
-        return instanceCollection
+        return instanceCollection asddsadsa
     }
 
 [<Emit("SPDragDropManager")>]
