@@ -282,6 +282,16 @@ let startSiteWorkFlow (context:ClientContext) (web:Web) (subscription) (inputPar
     }
     |> Promise.iter( ignore )
 
+let getWorkflowInstances (context:ClientContext) (web:Web)  (subscription) =
+    promise {
+        let execQuery () = context |> executeQuery
+        let wfServiceManager = WorkflowServices()?WorkflowServicesManager?newObject(context, web)
+        let instanceCollection = wfServiceManager?getWorkflowInstanceService()?Enumerate(subscription) :?> ClientObject
+        context.load( instanceCollection )
+        do! execQuery  ()
+        return instanceCollection
+    }
+
 [<Emit("SPDragDropManager")>]
 let SPDragDropManager() = jsNative
 
